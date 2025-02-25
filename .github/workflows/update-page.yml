@@ -34,11 +34,4 @@ jobs:
         git commit -m 'Update index.html with latest GitHub repos'
         git push
 
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v3
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: 'Update index.html with latest GitHub repos'
-        branch: update-index-html
-        title: 'Daily update of index.html'
-        body: 'This PR updates the index.html file with the latest GitHub repos.'
+
