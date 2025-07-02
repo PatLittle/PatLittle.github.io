@@ -1,0 +1,6 @@
+baseurl: ""
+title: "Pat Little's Blog"
+description: "Personal blog for sharing thoughts and projects."
+theme: minima
+license_name: "Creative Commons Attribution 4.0 International"
+license_url: "https://creativecommons.org/licenses/by/4.0/"
