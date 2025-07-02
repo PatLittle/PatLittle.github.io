@@ -1,4 +1,5 @@
 import json
+
 import re
 from pathlib import Path
 
@@ -76,3 +77,4 @@ if __name__ == "__main__":
     orgs = fetch_organizations(USER)
     achievements = fetch_achievements(USER)
     save_profile_data(profile, orgs, achievements, PROFILE_OUTPUT)
+

@@ -31,6 +31,7 @@ Welcome to my personal blog! Here you'll find my latest posts.
 
 [Connect with me on LinkedIn](https://www.linkedin.com/in/patrickjlittle/)
 
+
 ## My GitHub Repositories
 
 {% if site.data.repos and site.data.repos | size > 0 %}
