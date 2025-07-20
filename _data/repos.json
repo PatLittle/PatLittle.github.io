@@ -48,6 +48,10 @@
     "html_url": "https://github.com/PatLittle/DataReports-Test"
   },
   {
+    "name": "deplane",
+    "html_url": "https://github.com/PatLittle/deplane"
+  },
+  {
     "name": "draft-user-fees-table",
     "html_url": "https://github.com/PatLittle/draft-user-fees-table"
   },
@@ -114,9 +118,5 @@
   {
     "name": "oic-data",
     "html_url": "https://github.com/PatLittle/oic-data"
-  },
-  {
-    "name": "ontario-covid-level-map",
-    "html_url": "https://github.com/PatLittle/ontario-covid-level-map"
   }
 ]
