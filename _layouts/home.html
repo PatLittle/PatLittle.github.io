@@ -1,0 +1,69 @@
+<section class="container hero">
+  <div>
+    <img src="{{ site.data.site.hero.image }}" alt="{{ site.data.site.hero.image_alt }}" />
+  </div>
+  <div class="hero-card">
+    <div class="hero-profile">
+      <img src="{{ site.data.site.profile.avatar }}" alt="{{ site.data.site.profile.name }}" />
+      <div>
+        <p>{{ site.data.site.profile.role }}</p>
+        <strong>{{ site.data.site.profile.bio }}</strong>
+      </div>
+    </div>
+    <h1>{{ site.data.site.hero.greeting }} {{ site.data.site.hero.emoji }}</h1>
+    <p>{{ site.data.site.hero.blurb }}</p>
+    <div class="hero-actions">
+      <a class="button button-primary" href="{{ site.data.site.hero.cta_primary_link }}">{{ site.data.site.hero.cta_primary }}</a>
+      <a class="button button-secondary" href="{{ site.data.site.hero.cta_secondary_link }}">{{ site.data.site.hero.cta_secondary }}</a>
+    </div>
+  </div>
+</section>
+
+<section class="container">
+  <h2 class="section-title">{{ site.data.site.sections.highlights_title }}</h2>
+  <div class="highlights">
+    {% for highlight in site.data.site.sections.highlights %}
+      <div class="highlight-card">
+        <img src="{{ highlight.image }}" alt="{{ highlight.title }}" />
+        <p>{{ highlight.title }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section id="latest" class="container">
+  <h2 class="section-title">The Binary Journal</h2>
+  <div class="main-grid">
+    <div>
+      <div class="posts-grid">
+        {% for post in site.posts limit: 6 %}
+          <article class="post-card">
+            <span class="tag">{{ post.category | default: 'Writing' }}</span>
+            <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+            <p>{{ post.excerpt | strip_html | truncate: 120 }}</p>
+            <small>{{ post.date | date: '%B %d, %Y' }}</small>
+          </article>
+        {% endfor %}
+      </div>
+      <div style="margin-top: 20px;">
+        <a class="button button-secondary" href="{{ '/blog/' | relative_url }}">Load more</a>
+      </div>
+    </div>
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <h3>{{ site.data.site.sections.newsletter_title }}</h3>
+        <p>{{ site.data.site.sections.newsletter_body }}</p>
+        <input class="newsletter-input" type="email" placeholder="Your email address" />
+        <button class="button button-primary" type="button">Join now</button>
+      </div>
+      <div class="sidebar-card">
+        <h3>{{ site.data.site.sections.topics_title }}</h3>
+        <div class="topic-list">
+          {% for topic in site.data.site.sections.topics %}
+            <span class="topic">{{ topic }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
