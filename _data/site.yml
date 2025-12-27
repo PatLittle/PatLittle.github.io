@@ -13,7 +13,7 @@ profile:
   name: "Pat Little"
   role: "Data and Analytics Leader"
   bio: "Trying to Unlock the Data and Unblock the update Pipes."
-  avatar: "/assets/images/avatar.svg"
+  avatar: "/assets/images/avatar.png"
 sections:
   highlights_title: "Projects"
   highlights:
