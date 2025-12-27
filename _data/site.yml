@@ -1,8 +1,8 @@
 hero:
   greeting: "Hi! I'm Pat"
   emoji: "👋"
-  title: "A digital builder, product nerd, and lifelong learner."
-  blurb: "I write about building high-trust teams, designing thoughtful products, and shipping software that helps people do their best work."
+  title: "A tinkerer, data nerd, and lifelong learner."
+  blurb: "I write about open data, digital policy, and try to share useful tidbits for open data producers and consumers."
   cta_primary: "Read the Blog"
   cta_primary_link: "#latest"
   cta_secondary: "View Resume"
