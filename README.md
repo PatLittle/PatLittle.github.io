@@ -1,24 +1,62 @@
-# Pat Little's Blog
+# Pat Little Blog (Jekyll)
 
-This repository hosts my personal blog built with [Jekyll](https://jekyllrb.com/) and the `minima` theme.
+A professional, Jekyll-based blog designed for GitHub Pages. The site includes a custom theme, home page hero, blog archive, resume page, and structured data in `_data/site.yml`.
 
-## Writing posts
+## Local development
 
-Add new markdown files to the `_posts` directory. Filenames must follow the pattern `YYYY-MM-DD-title.md` and include YAML front matter like:
+1. Install Ruby (recommended: 3.x) and Bundler.
+2. Install dependencies:
+   ```bash
+   bundle install
+   ```
+3. Run the site locally:
+   ```bash
+   bundle exec jekyll serve
+   ```
+4. Visit `http://localhost:4000`.
 
+## Adding a blog post
+
+Posts live in the `_posts/` folder and must use the format `YYYY-MM-DD-title.md`.
+
+Example:
 ```markdown
 ---
-layout: post
-title: "My Post Title"
+title: "Your Post Title"
+category: "Product"
 ---
+
+Your post content goes here.
 ```
 
-The content under the front matter is written in regular Markdown.
+The `category` field shows up as the tag on the home page cards.
 
-## Updating GitHub data
+## Adding a new page (resume, about, etc.)
 
-Run `python generate_repos_list.py` to fetch information about my GitHub profile and repositories. The script saves repository links to `_data/repos.json` and profile details to `_data/profile.json`. The homepage uses these files to show profile stats and links.
+Pages live in the `pages/` folder. Add front matter with a `permalink` so the URL is predictable.
 
-## License
+Example for a resume page:
+```markdown
+---
+layout: page
+title: "Resume"
+permalink: /resume/
+---
 
-Unless otherwise noted, content on this site is licensed under a [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
+Content goes here.
+```
+
+## Adding images or other assets
+
+- Place images in `assets/images/`.
+- Reference them with absolute paths, for example: `![Alt text](/assets/images/your-image.png)`.
+- Store other files (like PDFs) in `assets/` and link to them directly (e.g., `/assets/resume.pdf`).
+
+## Customizing the theme
+
+Theme content and labels are stored in `_data/site.yml`.
+
+- **Hero content:** `_data/site.yml` → `hero`
+- **Profile details:** `_data/site.yml` → `profile`
+- **Highlights and topics:** `_data/site.yml` → `sections`
+- **Styling:** `assets/css/style.css`

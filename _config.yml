@@ -1,6 +1,28 @@
 baseurl: ""
-title: "Pat Little's Blog"
-description: "Personal blog for sharing thoughts and projects."
-theme: minima
-license_name: "Creative Commons Attribution 4.0 International"
-license_url: "https://creativecommons.org/licenses/by/4.0/"
+url: ""
+
+title: "Pat Little"
+description: "A professional blog about product, technology, and creativity."
+
+permalink: /blog/:title/
+
+collections:
+  pages:
+    output: true
+
+markdown: kramdown
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: post
+      author: "Pat Little"
+      featured: false
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: page
