@@ -1,8 +1,8 @@
 hero:
   greeting: "Hi! I'm Pat"
   emoji: "👋"
-  title: "A digital builder, product nerd, and lifelong learner."
-  blurb: "I write about building high-trust teams, designing thoughtful products, and shipping software that helps people do their best work."
+  title: "A tinkerer, data nerd, and lifelong learner."
+  blurb: "I write about open data, digital policy, and try to share useful tidbits for open data producers and consumers."
   cta_primary: "Read the Blog"
   cta_primary_link: "#latest"
   cta_secondary: "View Resume"
@@ -11,13 +11,13 @@ hero:
   image: "/assets/images/hero-illustration.svg"
 profile:
   name: "Pat Little"
-  role: "Product & Engineering Leader"
-  bio: "I help teams ship delightful software with clarity, curiosity, and care."
+  role: "Data and Analytics Leader"
+  bio: "Trying to Unlock the Data and Unblock the update Pipes."
   avatar: "/assets/images/avatar.svg"
 sections:
-  highlights_title: "Nerd Stuff"
+  highlights_title: "Projects"
   highlights:
-    - title: "Product Strategy"
+    - title: "[Skateway Data](https://github.com/PatLittle/skateway_data)"
       image: "/assets/images/highlight-1.svg"
     - title: "Developer Experience"
       image: "/assets/images/highlight-2.svg"
