@@ -11,22 +11,24 @@ hero:
   image: "/assets/images/hero-illustration.svg"
 profile:
   name: "Pat Little"
-  role: "Data and Analytics Leader"
-  bio: "Trying to Unlock the Data and Unblock the update Pipes."
-  avatar: "/assets/images/avatar.png"
+  role: "Product & Engineering Leader"
+  bio: "I help teams ship delightful software with clarity, curiosity, and care."
+  avatar: "/assets/images/avatar.svg"
 sections:
-  highlights_title: "Projects"
+  highlights_title: "Nerd Stuff"
   highlights:
-    - title: "[Skateway Data](https://github.com/PatLittle/skateway_data)"
+    - title: "Product Strategy"
       image: "/assets/images/highlight-1.svg"
+      link: "/blog/"
     - title: "Developer Experience"
       image: "/assets/images/highlight-2.svg"
+      link: "/blog/"
     - title: "AI & Automation"
       image: "/assets/images/highlight-3.svg"
+      link: "/blog/"
     - title: "Design Systems"
       image: "/assets/images/highlight-4.svg"
-  newsletter_title: "Stay inspired weekly ✨"
-  newsletter_body: "A short email on lessons learned, what I'm reading, and tools worth sharing. No spam, ever."
+      link: "/blog/"
   topics_title: "Topics"
   topics:
     - "Product"
@@ -37,3 +39,13 @@ sections:
     - "AI"
     - "Systems"
     - "Writing"
+social:
+  github:
+    label: "GitHub"
+    url: "https://github.com/your-handle"
+  linkedin:
+    label: "LinkedIn"
+    url: "https://www.linkedin.com/in/your-handle/"
+rss:
+  label: "RSS"
+  url: "/feed.xml"
