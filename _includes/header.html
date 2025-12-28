@@ -1,7 +1,7 @@
 <header class="site-header">
   <div class="container nav">
     <a class="nav-logo" href="{{ '/' | relative_url }}">
-      <img src="{{ site.data.site.profile.avatar }}" alt="{{ site.data.site.profile.name }}" width="36" height="36" />
+      <img src="{{ site.data.site.profile.avatar }}" alt="{{ site.data.site.profile.name }}" width="40" height="40" />
       <div>
         {{ site.data.site.profile.name }}
         <span>{{ site.data.site.profile.role }}</span>
@@ -9,7 +9,7 @@
     </a>
     <nav class="nav-links">
       <a href="{{ '/' | relative_url }}">Home</a>
-      <a href="#latest">Blog</a>
+      <a href="{{ '/index#latest' | relative_url }}">Blog</a>
       <a href="{{ '/resume/' | relative_url }}">Resume</a>
       <a href="{{ '/about/' | relative_url }}">About</a>
     </nav>
