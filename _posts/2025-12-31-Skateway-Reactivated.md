@@ -6,9 +6,9 @@ category: "Product"
 <iframe
   id="inlineFrameExample"
   title="Inline Frame Example"
-  width="300"
-  height="200"
-  src="https://geojson.io/#id=github:PatLittle/skateway_data/blob/main/status_styled.geojson&map=13.23/45.40468/-75.69245">
+  width="800"
+  height="800"
+  src="https://geojson.io/#id=github:PatLittle/skateway_data/blob/main/status_styled.geojson&map=13.23/45.40468/-75.69245" sandbox="">
 </iframe>
 
 1. **Limit work in progress.** Choose fewer big bets so the team can win.
