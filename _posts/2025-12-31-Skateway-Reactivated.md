@@ -4,14 +4,19 @@ category: "Product"
 mermaid: true
 ---
 
+For the last two Rideau Canal skating seasons I've had a little data collection project running to automatically collect the ice conditions from the NCC's open data, and then store it as timeseries in a CSV.
+Along the way I've used this little project as example data to learn & practice, share, and talk about data science and analytics.
+
+As of 2025-12-27 I reenabled the automated data collection, and the third year of data is now being added to the longitudinal dataset. 
+
 <iframe
-  id="inlineFrameExample"
-  title="Inline Frame Example"
-  width="800"
-  height="800"
-  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-  src="https://geojson.io/#id=github:PatLittle/skateway_data/blob/main/status_styled.geojson&map=13.23/45.40468/-75.69245" >
+  src="https://flatgithub.com/PatLittle/skateway_data?filename=current_conditions.csv&sort=Current_Datetime%2Cdesc&stickyColumnName=Current_Datetime"
+  title="conditions"
+  width="400"
+  height="300">
 </iframe>
+
+![condition status](https://github.com/PatLittle/skateway_data/blob/main/skateway_status_map.png)
 
 
 ```mermaid
