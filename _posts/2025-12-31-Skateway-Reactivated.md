@@ -22,7 +22,7 @@ As of 2025-12-27 I reenabled the automated data collection, and the third year o
 
 ## Visual Export
 
-![condition status](https://github.com/PatLittle/skateway_data/blob/main/skateway_status_map.png)
+![condition status](https://raw.githubusercontent.com/PatLittle/skateway_data/main/skateway_status_map.png)
 
 
 ```mermaid
