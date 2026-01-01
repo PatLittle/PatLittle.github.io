@@ -1,6 +1,7 @@
 ---
 title: "Reactivating the Skateway Repo"
 category: "Product"
+mermaid: true
 ---
 
 <iframe
