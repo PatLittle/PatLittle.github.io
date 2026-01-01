@@ -11,7 +11,9 @@ As of 2025-12-27 I reenabled the automated data collection, and the third year o
 
 <a target="_blank" href="https://flatgithub.com/PatLittle/skateway_data?filename=current_conditions.csv&sort=Current_Datetime%2Cdesc&stickyColumnName=Current_Datetime">
   open in new tab↗
-</a><iframe
+</a>
+
+<iframe
   src="https://flatgithub.com/PatLittle/skateway_data?filename=current_conditions.csv&sort=Current_Datetime%2Cdesc&stickyColumnName=Current_Datetime"
   title="conditions"
   width="600"
