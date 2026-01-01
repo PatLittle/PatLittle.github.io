@@ -4,26 +4,37 @@ category: "Product"
 mermaid: true
 ---
 
-For the last two Rideau Canal skating seasons I've had a little data collection project running to automatically collect the ice conditions from the NCC's open data, and then store it as timeseries in a CSV.
-Along the way I've used this little project as example data to learn & practice, share, and talk about data science and analytics.
+For the last two Rideau Canal skating seasons I've had a little data collection project running to automatically collect the ice conditions from NCC's open data, and then store it as timeseries in a CSV.
+Along the way I've used this little project as example data to learn & practice, share, and talk about data science and analytics. 
+
+The original post talks about using python to dump the geospatial data from ESRI into CSV for analysts not from a geo data background - https://www.linkedin.com/pulse/opendatadays-geospatial-data-non-geo-users-patrick-little-mba-udclc and there is also a example notebook [here](https://gist.github.com/PatLittle/413eef25fae1d1a2e1d5be7ee38c79d0)
 
 As of 2025-12-27 I reenabled the automated data collection, and the third year of data is now being added to the longitudinal dataset. 
 
-<a target="_blank" href="https://flatgithub.com/PatLittle/skateway_data?filename=current_conditions.csv&sort=Current_Datetime%2Cdesc&stickyColumnName=Current_Datetime">
+<a style="text-align:right;" target="_blank" href="https://flatgithub.com/PatLittle/skateway_data?filename=current_conditions.csv&sort=Current_Datetime%2Cdesc&stickyColumnName=Current_Datetime">
   open in new tab↗
 </a>
 
 <iframe
   src="https://flatgithub.com/PatLittle/skateway_data?filename=current_conditions.csv&sort=Current_Datetime%2Cdesc&stickyColumnName=Current_Datetime"
   title="conditions"
-  width="600"
-  height="400"> 
+  width="800"
+  height="600"> 
 </iframe>
 
 ## Visual Export
 
+I also was interested to see how exporting a PNG of the GeoJSON and keeping the image file in source control would work for creating an animation, or just having the GH visual diff to view the changes. 
+
+This image will recieve changes daily and the GH has 3 different ways to visually compare the changes. More info here https://docs.github.com/en/repositories/working-with-files/using-files/working-with-non-code-files#viewing-differences 
+
+
 ![condition status](https://raw.githubusercontent.com/PatLittle/skateway_data/main/skateway_status_map.png)
 
+
+## Mermaid Gantt Chart as a timeseries visualization
+
+This was also a experiment with using mermaid gantt chart as a way to visualize the conditions overtime, while keeping the spatial context of how the geography appears on a map. 
 
 ```mermaid
 ---
@@ -78,6 +89,4 @@ gantt
   Closed: c, 2025-12-31 16:28:10, 2026-01-01 03:54:16
 ```
 
-1. **Limit work in progress.** Choose fewer big bets so the team can win.
-2. **Share the why.** Every roadmap item should explain the customer impact.
-3. **Review monthly.** Make small course corrections before they become pivots.
+More info on the Gantt Chart Syntax here - https://docs.mermaidchart.com/mermaid-oss/syntax/gantt.html#output-in-compact-mode
