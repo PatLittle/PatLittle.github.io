@@ -90,7 +90,7 @@ img {
 }
 
 .hero {
-  margin: 48px 0 24px;
+  margin: auto;
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.18), rgba(14, 165, 233, 0.12));
   border: 1px solid rgba(38, 52, 85, 0.6);
   border-radius: var(--radius-lg);
