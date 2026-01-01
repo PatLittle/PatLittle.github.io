@@ -31,7 +31,12 @@ body {
 }
 
 a {
-  color: inherit;
+  color: hotpink;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+a:visited {
   text-decoration: none;
 }
 
