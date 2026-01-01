@@ -6,11 +6,13 @@ mermaid: true
 
 For the last two Rideau Canal skating seasons I've had a little data collection project running to automatically collect the ice conditions from NCC's open data, and then store it as timeseries in a CSV.
 
-Along the way I've used this little project as example data to learn & practice, share, and talk about data science and analytics. 
+Along the way I've used this little project as a sandbox to learn & practice different techniques/tools/technologies, as well as to share some tips and talk about data science and analytics. 
 
+Since the ice is open for 2026, I reenabled the automated data collection, and the third year of data is now being added to the longitudinal dataset. 
+
+This year I'd like experiment with some AI enabled data workflows based on agent skills, as well as some image processing for traffic volume estimation.
 The original post talks about quickly converting geospatial data from ESRI into CSV for analysts not from a geo data background - [LinkedIn Article](https://www.linkedin.com/pulse/opendatadays-geospatial-data-non-geo-users-patrick-little-mba-udclc) and there is also a example notebook [here](https://gist.github.com/PatLittle/413eef25fae1d1a2e1d5be7ee38c79d0)
 
-As of 2025-12-27 I reenabled the automated data collection, and the third year of data is now being added to the longitudinal dataset. 
 
 <a target="_blank" href="https://flatgithub.com/PatLittle/skateway_data?filename=current_conditions.csv&sort=Current_Datetime%2Cdesc&stickyColumnName=Current_Datetime" style="text-align:right;">
   open in new tab↗
