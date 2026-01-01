@@ -19,6 +19,7 @@ mermaid: true
 topAxis: true
 displayMode: compact
 config:
+  theme: 'dark'
   themeCSS: " #vg { fill: Green } #g {fill: yellow} #f {fill: orange} #p {fill: red}      \n
 #c {fill: Black} #cs {fill: Black} #sc {fill: White} #wo {fill: saddlebrown} \n
             text[id^=cs] { fill: red; } text[id^=sc] { fill: red; }
