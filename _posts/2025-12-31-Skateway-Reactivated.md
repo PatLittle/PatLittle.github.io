@@ -12,8 +12,8 @@ As of 2025-12-27 I reenabled the automated data collection, and the third year o
 <iframe
   src="https://flatgithub.com/PatLittle/skateway_data?filename=current_conditions.csv&sort=Current_Datetime%2Cdesc&stickyColumnName=Current_Datetime"
   title="conditions"
-  width="400"
-  height="300">
+  width="600"
+  height="400">
 </iframe>
 
 ![condition status](https://github.com/PatLittle/skateway_data/blob/main/skateway_status_map.png)
