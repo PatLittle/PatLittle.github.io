@@ -4,7 +4,7 @@ title: "Resume"
 permalink: /resume/
 ---
 
-Download the latest resume: [Resume PDF](/assets/resume.pdf)
+Download the latest resume: [LinkedIn](https://www.linkedin.com/in/patrickjlittle/))
 
 ## Experience
 
