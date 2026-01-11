@@ -55,6 +55,7 @@ As you can see the Gantt chart is a decently coherent abstraction of the map abo
 topAxis: true
 displayMode: compact
 config:
+  theme: 'dark'
   themeCSS: " #vg { fill: Green } #g {fill: GreenYellow} #f {fill: orange} #p {fill: red}      
 
 #c {fill: Black} #cs {fill: Black} #sc {fill: White} #wo {fill: saddlebrown} 
