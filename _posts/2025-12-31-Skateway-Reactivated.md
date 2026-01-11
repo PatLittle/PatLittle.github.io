@@ -1,17 +1,21 @@
 ---
-title: "Back Scraping the Ice: Reenabling Data Collection on the Rideau Canal Repo"
+title: "Back Scraping the Ice: Reactivating Data Collection on the Rideau Canal Repo"
 category: "Product"
 mermaid: true
 ---
 
-Over the last two seasons of skating on the Rideau Canal I've had a little data collection project running, automatically collecting the ice conditions from NCC's ESRI map server on their open data portal and then storing it as timeseries in a CSV. The original inspiration was to demonstrate how to convert data from a more niche source like GeoSpatial Services into plain CSV, enabling Data Analysts without a GeoData background to leverage these abundant, and high quality data sources.  
+Over the last two seasons of skating on the Rideau Canal I've had a little data collection project running, automatically collecting the ice conditions from NCC's ESRI map server on their open data portal and then storing it as timeseries in a CSV. 
+
+The original inspiration was to demonstrate how to convert data from a more niche source like GeoSpatial Services into plain CSV, enabling Data Analysts without a GeoData background to leverage these abundant, and high quality data sources.  
 
 > This is the original post I made in 2024, talking about quickly converting geospatial data from ESRI into CSV for analysts not from a geo data background - [LinkedIn Article](https://www.linkedin.com/pulse/opendatadays-geospatial-data-non-geo-users-patrick-little-mba-udclc) 
 > and there is also a example notebook [here](https://gist.github.com/PatLittle/413eef25fae1d1a2e1d5be7ee38c79d0)
 
 Along the way I've used this little project as a sandbox to learn & practice different techniques/tools/technologies, as well as to share some tips and talk about data science and analytics. 
 
-⛸️ Since the ice is open for 2026 I unpaused the automated data collection, and the third year of data is now being added to the longitudinal dataset. 
+⛸️ Since the ice is open for 2026:
+ * I unpaused the automated data collection;
+ * and the third year of data is now being added to the longitudinal dataset. 
 
 
 
