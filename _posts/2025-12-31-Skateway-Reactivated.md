@@ -1,22 +1,23 @@
 ---
-title: "Reactivating the Skateway Repo"
+title: "Back Scraping the Ice: Reenabling Data Collection on the Rideau Canal Repo"
 category: "Product"
 mermaid: true
 ---
 
-For the last two Rideau Canal skating seasons I've had a little data collection project running to automatically collect the ice conditions from NCC's open data, and then store it as timeseries in a CSV.
+Over the last two seasons of skating on the Rideau Canal I've had a little data collection project running, automatically collecting the ice conditions from NCC's ESRI map server on their open data portal and then storing it as timeseries in a CSV. The original inspiration was to demonstrate how to convert data from a more niche source like GeoSpatial Services into plain CSV, enabling Data Analysts without a GeoData background to leverage these abundant, and high quality data sources.  
+
+> This is the original post I made in 2024, talking about quickly converting geospatial data from ESRI into CSV for analysts not from a geo data background - [LinkedIn Article](https://www.linkedin.com/pulse/opendatadays-geospatial-data-non-geo-users-patrick-little-mba-udclc) 
+> and there is also a example notebook [here](https://gist.github.com/PatLittle/413eef25fae1d1a2e1d5be7ee38c79d0)
 
 Along the way I've used this little project as a sandbox to learn & practice different techniques/tools/technologies, as well as to share some tips and talk about data science and analytics. 
 
-Since the ice is open for 2026, I reenabled the automated data collection, and the third year of data is now being added to the longitudinal dataset. 
-
-This year I'd like experiment with some AI enabled data workflows based on agent skills, as well as some image processing for traffic volume estimation.
-The original post talks about quickly converting geospatial data from ESRI into CSV for analysts not from a geo data background - [LinkedIn Article](https://www.linkedin.com/pulse/opendatadays-geospatial-data-non-geo-users-patrick-little-mba-udclc) and there is also a example notebook [here](https://gist.github.com/PatLittle/413eef25fae1d1a2e1d5be7ee38c79d0)
+⛸️ Since the ice is open for 2026 I unpaused the automated data collection, and the third year of data is now being added to the longitudinal dataset. 
 
 
-<a target="_blank" href="https://flatgithub.com/PatLittle/skateway_data?filename=current_conditions.csv&sort=Current_Datetime%2Cdesc&stickyColumnName=Current_Datetime" style="text-align:right;">
-  open in new tab↗
-</a>
+
+
+
+
 
 <iframe
   src="https://flatgithub.com/PatLittle/skateway_data?filename=current_conditions.csv&sort=Current_Datetime%2Cdesc&stickyColumnName=Current_Datetime"
@@ -24,26 +25,29 @@ The original post talks about quickly converting geospatial data from ESRI into 
   width="800"
   height="800"> 
 </iframe>
+<a target="_blank" href="https://flatgithub.com/PatLittle/skateway_data?filename=current_conditions.csv&sort=Current_Datetime%2Cdesc&stickyColumnName=Current_Datetime" style="text-align:right;">
+  open data in new tab↗
+</a>
+
 
 ## Visual Export
 
-I also was interested to in exporting a PNG of the GeoJSON and keeping the image file in source control, then using that githistory for creating an animation, or just having the GH visual diff to view the changes. 
-
-This image will recieve changes daily and the GH has 3 different ways to visually compare the changes. More info here [Github - rendering and diffing images](https://docs.github.com/en/repositories/working-with-files/using-files/working-with-non-code-files#viewing-differences) 
-
+I also was interested to in image exports of the GeoJSON with the image file in source control. Using the `git history` to get all the changes I was think it could be used for creating an animation, or just having the GitHub visual diff to view the changes. 
 
 ![condition status](https://raw.githubusercontent.com/PatLittle/skateway_data/main/skateway_status_map.png)
 
+This image will receive changes daily and the GH has 3 different ways to visually compare the changes. More info here [Github - rendering and diffing images](https://docs.github.com/en/repositories/working-with-files/using-files/working-with-non-code-files#viewing-differences) 
+
+
+![diff-img](https://raw.githubusercontent.com/PatLittle/PatLittle.github.io/refs/heads/main/assets/images/Screenshot%202026-01-10%20202915.png)
 
 ## Mermaid Gantt Chart as a timeseries visualization
 
-This was also a experiment with using mermaid gantt chart as a way to visualize the conditions overtime, while keeping the spatial context of how the geography appears on a map. 
+I'm also experimenting with using a mermaidjs gantt chart as a way to visualize the conditions overtime, while keeping the spatial context of how the geography appears on a map. 
 
 As you can see the Gantt chart is a decently coherent abstraction of the map above. 
 
-With the sections listed from North to South, this type visual is an interesting mid-point between the typical presentation of quantitative data and spatial information, but with the added timeseries dimension. 
 
-I may experiment with scaling the bar heights to match the length of each segment to make it convey proportions of the ice conditions better, or other scalings may be interesting such as scaling to usage traffic. 
 
 ```mermaid
 ---
@@ -96,4 +100,11 @@ gantt
   Closed: c, 2025-12-31 16:28:10, 2026-01-01 15:26:28
 ```
 
+
+With the sections listed from North to South, this type visual is an interesting mid-point between the typical presentation of quantitative data and spatial information, but with the added timeseries dimension.
+
 More info on the Gantt Chart Syntax here - https://docs.mermaidchart.com/mermaid-oss/syntax/gantt.html#output-in-compact-mode
+
+I may experiment with scaling the bar heights to match the length of each segment to make it convey proportions of the ice conditions better, or other scalings may be interesting such as scaling to usage traffic. Or potentially creating a timeseries GeoJSON compilation. 
+
+🤞Hoping for another great season in 2026!
