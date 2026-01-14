@@ -4,13 +4,95 @@ layout: default
 
 <style>
   /* ------------------------------
-     Post template: anchored headings (h2–h4)
+     Layout: 200px sticky sidenav + 800px main content
+  -------------------------------- */
+  .post-layout {
+    margin: 40px auto;
+    max-width: 1120px;
+  }
+
+  .post-shell {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .post-sidenav {
+    width: 200px;
+    flex: 0 0 200px;
+    position: sticky;
+    top: 96px; /* below your sticky header */
+    max-height: calc(100vh - 120px);
+    overflow: auto;
+    padding: 14px 12px;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(38, 52, 85, 0.6);
+  }
+
+  .post-sidenav .sidenav-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .post-sidenav nav a {
+    display: block;
+    padding: 6px 8px;
+    border-radius: 10px;
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 700;
+    line-height: 1.25;
+    border: 1px solid transparent;
+  }
+
+  .post-sidenav nav a:hover,
+  .post-sidenav nav a:focus {
+    color: var(--text);
+    border-color: rgba(236, 72, 153, 0.45);
+    background: rgba(236, 72, 153, 0.10);
+    outline: none;
+  }
+
+  .post-sidenav nav a.is-active {
+    color: var(--text);
+    border-color: rgba(236, 72, 153, 0.65);
+    background: rgba(236, 72, 153, 0.18);
+  }
+
+  /* Indentation per heading level */
+  .post-sidenav nav a.level-h3 { padding-left: 16px; font-weight: 650; }
+  .post-sidenav nav a.level-h4 { padding-left: 26px; font-weight: 600; }
+
+  .post-main {
+    width: 800px;
+    flex: 0 0 800px;
+    min-width: 0;
+  }
+
+  @media (max-width: 1100px) {
+    .post-shell { flex-direction: column; }
+    .post-sidenav {
+      width: 100%;
+      flex: 1 1 auto;
+      position: relative;
+      top: auto;
+      max-height: none;
+    }
+    .post-main { width: 100%; flex: 1 1 auto; }
+  }
+
+  /* ------------------------------
+     Existing: anchored headings (h2–h4)
   -------------------------------- */
   .post-content h2,
   .post-content h3,
   .post-content h4 {
     position: relative;
-    scroll-margin-top: 96px; /* accounts for sticky header */
+    scroll-margin-top: 96px;
   }
 
   .post-content h2 > a.heading-anchor,
@@ -52,25 +134,32 @@ layout: default
   }
 
   /* ------------------------------
-     Figures: centered + boxed (caption inside the box too)
+     Figures: centered + boxed (caption inside)
   -------------------------------- */
   .post-content figure {
     margin: 18px auto;
     max-width: min(820px, 100%);
     border: 2px solid rgba(38, 52, 85, 0.9);
     border-radius: 18px;
-    overflow: hidden; /* keeps caption inside rounded corners */
+    overflow: hidden;
     background: rgba(15, 23, 42, 0.45);
     box-shadow: var(--shadow);
   }
 
-  .post-content figure img,
-  .post-content figure video,
-  .post-content figure iframe {
+  /* Gallery image styling + min width 500px (responsive) */
+  .post-content figure img {
     display: block;
     width: 100%;
     height: auto;
     margin: 0 auto;
+    min-width: 500px;
+    max-width: 100%;
+    cursor: zoom-in;
+  }
+
+  /* On small screens, allow it to shrink */
+  @media (max-width: 560px) {
+    .post-content figure img { min-width: 0; }
   }
 
   .post-content figure figcaption {
@@ -84,7 +173,7 @@ layout: default
   }
 
   /* ------------------------------
-     Blockquotes: gradient background, bold white text, rounded corners
+     Blockquotes: gradient, bold white, rounded
   -------------------------------- */
   .post-content blockquote {
     margin: 18px 0;
@@ -96,38 +185,169 @@ layout: default
     border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow: 0 14px 28px rgba(15, 23, 42, 0.35);
   }
+  .post-content blockquote p { color: inherit; }
+  .post-content blockquote > :first-child { margin-top: 0; }
+  .post-content blockquote > :last-child { margin-bottom: 0; }
 
-  .post-content blockquote p {
-    color: inherit; /* overrides your .post-content p color */
+  /* ------------------------------
+     Lists: indent 30px
+  -------------------------------- */
+  .post-content ul,
+  .post-content ol {
+    padding-left: 30px;
   }
 
-  .post-content blockquote a {
-    color: #fff;
-    text-decoration: underline;
-    text-decoration-color: rgba(255, 255, 255, 0.7);
+  /* ------------------------------
+     Gallery modal
+  -------------------------------- */
+  .gallery-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.72);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .gallery-modal.is-open { display: flex; }
+
+  .gallery-dialog {
+    width: min(1100px, 96vw);
+    max-height: 92vh;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(11, 18, 36, 0.85);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
   }
 
-  .post-content blockquote > :first-child {
-    margin-top: 0;
+  .gallery-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
-  .post-content blockquote > :last-child {
-    margin-bottom: 0;
+
+  .gallery-title {
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
+
+  .gallery-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .gallery-btn {
+    appearance: none;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .gallery-btn:hover { transform: translateY(-1px); }
+
+  .gallery-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow: auto;
+  }
+
+  .gallery-stage img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    cursor: default;
+  }
+
+  .gallery-caption {
+    padding: 12px 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(15, 23, 42, 0.55);
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  /* big prev/next click targets on sides */
+  .gallery-navzone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 22%;
+    cursor: pointer;
+  }
+  .gallery-navzone.prev { left: 0; }
+  .gallery-navzone.next { right: 0; }
 </style>
 
 <div class="container post-layout">
-  <h1>{{ page.title }}</h1>
-  <div class="post-meta">{{ page.date | date: '%B %d, %Y' }} · {{ page.category | default: 'Writing' }}</div>
-  <div class="post-content">
-    {{ content }}
+  <div class="post-main">
+    <h1>{{ page.title }}</h1>
+    <div class="post-meta">{{ page.date | date: '%B %d, %Y' }} · {{ page.category | default: 'Writing' }}</div>
+  </div>
+
+  <div class="post-shell">
+    <aside class="post-sidenav" aria-label="On this page">
+      <div class="sidenav-title">On this page</div>
+      <nav id="post-toc"></nav>
+    </aside>
+
+    <main class="post-main">
+      <div class="post-content" id="post-content">
+        {{ content }}
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Gallery modal -->
+<div class="gallery-modal" id="galleryModal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="gallery-dialog" role="document">
+    <div class="gallery-bar">
+      <div class="gallery-title" id="galleryTitle">Gallery</div>
+      <div class="gallery-actions">
+        <button class="gallery-btn" type="button" id="galleryPrev" aria-label="Previous image">Prev</button>
+        <button class="gallery-btn" type="button" id="galleryNext" aria-label="Next image">Next</button>
+        <button class="gallery-btn" type="button" id="galleryClose" aria-label="Close gallery">Close</button>
+      </div>
+    </div>
+
+    <div class="gallery-stage" id="galleryStage">
+      <!-- click zones for prev/next -->
+      <div class="gallery-navzone prev" id="galleryZonePrev" aria-hidden="true"></div>
+      <div class="gallery-navzone next" id="galleryZoneNext" aria-hidden="true"></div>
+
+      <img id="galleryImage" alt="" />
+    </div>
+
+    <div class="gallery-caption" id="galleryCaption"></div>
   </div>
 </div>
 
 <script>
   (function () {
     const root = document.querySelector(".post-content");
-    if (!root) return;
+    const toc = document.getElementById("post-toc");
+    if (!root || !toc) return;
 
+    // ---------- Heading anchors + TOC ----------
     const slugify = (text) =>
       text
         .toLowerCase()
@@ -143,23 +363,141 @@ layout: default
       return n ? `${base}-${n + 1}` : base;
     };
 
-    root.querySelectorAll("h2, h3, h4").forEach((h) => {
-      // If heading already contains a link, don't double-wrap.
-      if (h.querySelector("a")) return;
+    const headings = Array.from(root.querySelectorAll("h2, h3, h4"));
 
-      // Ensure heading has an id
+    headings.forEach((h) => {
+      // Ensure an id
       let id = h.id && h.id.trim() ? h.id.trim() : slugify(h.textContent);
       if (!id) return;
       id = uniqueId(id);
       h.id = id;
 
-      // Wrap heading content in an anchor (keeps inline markup)
-      const a = document.createElement("a");
-      a.className = "heading-anchor";
-      a.href = `#${id}`;
+      // Wrap heading content in an anchor if not already wrapped
+      if (!h.querySelector("a.heading-anchor")) {
+        // If heading already has any link, leave it (avoid nested anchors)
+        if (!h.querySelector("a")) {
+          const a = document.createElement("a");
+          a.className = "heading-anchor";
+          a.href = `#${id}`;
+          while (h.firstChild) a.appendChild(h.firstChild);
+          h.appendChild(a);
+        }
+      }
 
-      while (h.firstChild) a.appendChild(h.firstChild);
-      h.appendChild(a);
+      // Add to TOC
+      const link = document.createElement("a");
+      link.href = `#${id}`;
+      link.textContent = h.textContent.trim();
+      link.classList.add(`level-${h.tagName.toLowerCase()}`);
+      toc.appendChild(link);
+    });
+
+    // Active link highlighting
+    const tocLinks = Array.from(toc.querySelectorAll("a"));
+    const byId = new Map(tocLinks.map((a) => [a.getAttribute("href").slice(1), a]));
+
+    const setActive = (id) => {
+      tocLinks.forEach((a) => a.classList.toggle("is-active", a.getAttribute("href") === `#${id}`));
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        // Choose the closest visible heading to the top
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        if (visible && visible.target && visible.target.id && byId.has(visible.target.id)) {
+          setActive(visible.target.id);
+        }
+      },
+      { rootMargin: "-25% 0px -65% 0px", threshold: [0, 1] }
+    );
+
+    headings.forEach((h) => io.observe(h));
+
+    // ---------- Image gallery modal ----------
+    const modal = document.getElementById("galleryModal");
+    const imgEl = document.getElementById("galleryImage");
+    const capEl = document.getElementById("galleryCaption");
+    const titleEl = document.getElementById("galleryTitle");
+    const btnPrev = document.getElementById("galleryPrev");
+    const btnNext = document.getElementById("galleryNext");
+    const btnClose = document.getElementById("galleryClose");
+    const zonePrev = document.getElementById("galleryZonePrev");
+    const zoneNext = document.getElementById("galleryZoneNext");
+
+    // Use images inside figures in the post content as the gallery items
+    const galleryItems = Array.from(root.querySelectorAll("figure img")).map((img) => {
+      const fig = img.closest("figure");
+      const cap = fig ? fig.querySelector("figcaption") : null;
+      return {
+        el: img,
+        src: img.currentSrc || img.src,
+        alt: img.alt || "",
+        caption: cap ? cap.textContent.trim() : ""
+      };
+    });
+
+    if (galleryItems.length) {
+      // Mark as clickable (cursor already set in CSS)
+      galleryItems.forEach((item, idx) => {
+        item.el.dataset.galleryIndex = String(idx);
+        item.el.addEventListener("click", () => openAt(idx));
+      });
+    }
+
+    let current = 0;
+    let lastFocused = null;
+
+    function render() {
+      const item = galleryItems[current];
+      imgEl.src = item.src;
+      imgEl.alt = item.alt || "";
+      capEl.textContent = item.caption || "";
+      titleEl.textContent = `Image ${current + 1} of ${galleryItems.length}`;
+      btnPrev.disabled = galleryItems.length < 2;
+      btnNext.disabled = galleryItems.length < 2;
+    }
+
+    function openAt(i) {
+      if (!galleryItems.length) return;
+      current = ((i % galleryItems.length) + galleryItems.length) % galleryItems.length;
+      lastFocused = document.activeElement;
+
+      render();
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      btnClose.focus();
+    }
+
+    function close() {
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      if (lastFocused && lastFocused.focus) lastFocused.focus();
+    }
+
+    function prev() { openAt(current - 1); }
+    function next() { openAt(current + 1); }
+
+    btnPrev.addEventListener("click", prev);
+    btnNext.addEventListener("click", next);
+    btnClose.addEventListener("click", close);
+    zonePrev.addEventListener("click", prev);
+    zoneNext.addEventListener("click", next);
+
+    // Close on backdrop click (but not when clicking the dialog)
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) close();
+    });
+
+    // Keyboard support
+    document.addEventListener("keydown", (e) => {
+      if (!modal.classList.contains("is-open")) return;
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowRight") next();
     });
   })();
 </script>
