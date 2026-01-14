@@ -1,300 +1,301 @@
 ---
 layout: default
 ---
-
 <style>
-  /* ------------------------------
-     Layout: 200px sticky sidenav + 800px main content
-  -------------------------------- */
-  .post-layout {
-    margin: 40px auto;
-    max-width: 1120px;
-  }
+/* =========================================================
+   POST LAYOUT: 200px sidenav + 800px content
+========================================================= */
+.post-layout {
+  margin: 40px auto;
+  max-width: 1120px;
+}
 
+.post-shell {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.post-main {
+  width: 800px;
+  flex: 0 0 800px;
+  min-width: 0;
+}
+
+/* =========================================================
+   SIDE NAV (sticky, unlimited height)
+========================================================= */
+.post-sidenav {
+  width: 200px;
+  flex: 0 0 200px;
+  position: sticky;
+  top: 96px;
+  padding: 14px 12px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(38, 52, 85, 0.6);
+
+  max-height: none;
+  overflow: visible;
+}
+
+.post-sidenav .sidenav-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.post-sidenav nav a {
+  display: block;
+  padding: 6px 8px;
+  border-radius: 10px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 700;
+  line-height: 1.25;
+  border: 1px solid transparent;
+}
+
+.post-sidenav nav a:hover,
+.post-sidenav nav a:focus {
+  color: var(--text);
+  border-color: rgba(236, 72, 153, 0.45);
+  background: rgba(236, 72, 153, 0.10);
+  outline: none;
+}
+
+.post-sidenav nav a.is-active {
+  color: var(--text);
+  border-color: rgba(236, 72, 153, 0.65);
+  background: rgba(236, 72, 153, 0.18);
+}
+
+.post-sidenav nav a.level-h3 { padding-left: 16px; }
+.post-sidenav nav a.level-h4 { padding-left: 26px; }
+
+/* =========================================================
+   RESPONSIVE FALLBACK
+========================================================= */
+@media (max-width: 1100px) {
   .post-shell {
-    display: flex;
-    justify-content: center;
-    gap: 24px;
-    align-items: flex-start;
+    flex-direction: column;
   }
 
   .post-sidenav {
-    width: 200px;
-    flex: 0 0 200px;
-    position: sticky;
-    top: 96px; /* below your sticky header */
-    max-height: calc(100vh - 120px);
-    overflow: auto;
-    padding: 14px 12px;
-    border-radius: 16px;
-    background: rgba(15, 23, 42, 0.55);
-    border: 1px solid rgba(38, 52, 85, 0.6);
+    width: 100%;
+    position: relative;
+    top: auto;
   }
-
-  .post-sidenav .sidenav-title {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-
-  .post-sidenav nav a {
-    display: block;
-    padding: 6px 8px;
-    border-radius: 10px;
-    color: var(--muted);
-    text-decoration: none;
-    font-weight: 700;
-    line-height: 1.25;
-    border: 1px solid transparent;
-  }
-
-  .post-sidenav nav a:hover,
-  .post-sidenav nav a:focus {
-    color: var(--text);
-    border-color: rgba(236, 72, 153, 0.45);
-    background: rgba(236, 72, 153, 0.10);
-    outline: none;
-  }
-
-  .post-sidenav nav a.is-active {
-    color: var(--text);
-    border-color: rgba(236, 72, 153, 0.65);
-    background: rgba(236, 72, 153, 0.18);
-  }
-
-  /* Indentation per heading level */
-  .post-sidenav nav a.level-h3 { padding-left: 16px; font-weight: 650; }
-  .post-sidenav nav a.level-h4 { padding-left: 26px; font-weight: 600; }
 
   .post-main {
-    width: 800px;
-    flex: 0 0 800px;
+    width: 100%;
+    flex: 1 1 auto;
+  }
+}
+
+/* =========================================================
+   ANCHORED HEADINGS (h2–h4)
+========================================================= */
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+  position: relative;
+  scroll-margin-top: 96px;
+}
+
+.post-content h2 > a.heading-anchor,
+.post-content h3 > a.heading-anchor,
+.post-content h4 > a.heading-anchor {
+  color: inherit;
+  text-decoration: none;
+  font-weight: inherit;
+}
+
+.post-content h2 > a.heading-anchor::before,
+.post-content h3 > a.heading-anchor::before,
+.post-content h4 > a.heading-anchor::before {
+  content: "#";
+  margin-right: 10px;
+  color: hotpink;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.post-content h2:hover > a.heading-anchor::before,
+.post-content h3:hover > a.heading-anchor::before,
+.post-content h4:hover > a.heading-anchor::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* =========================================================
+   FIGURES + GALLERY IMAGES
+========================================================= */
+.post-content figure {
+  margin: 18px auto;
+  max-width: min(820px, 100%);
+  border: 2px solid rgba(38, 52, 85, 0.9);
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.45);
+  box-shadow: var(--shadow);
+}
+
+.post-content figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  min-width: 500px;
+  max-width: 100%;
+  cursor: zoom-in;
+}
+
+@media (max-width: 560px) {
+  .post-content figure img {
     min-width: 0;
   }
+}
 
-  @media (max-width: 1100px) {
-    .post-shell { flex-direction: column; }
-    .post-sidenav {
-      width: 100%;
-      flex: 1 1 auto;
-      position: relative;
-      top: auto;
-      max-height: none;
-    }
-    .post-main { width: 100%; flex: 1 1 auto; }
-  }
+.post-content figure figcaption {
+  padding: 12px 14px;
+  background: DarkSlateBlue;
+  color: hotpink;
+  font-family: "Comic Sans MS", cursive;
+  font-weight: 700;
+  text-align: center;
+  border-top: 2px solid rgba(38, 52, 85, 0.9);
+}
 
-  /* ------------------------------
-     Existing: anchored headings (h2–h4)
-  -------------------------------- */
-  .post-content h2,
-  .post-content h3,
-  .post-content h4 {
-    position: relative;
-    scroll-margin-top: 96px;
-  }
+/* =========================================================
+   BLOCKQUOTES
+========================================================= */
+.post-content blockquote {
+  margin: 18px 0;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background-image: linear-gradient(to bottom, DarkSlateBlue, Purple);
+  color: #fff;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.35);
+}
 
-  .post-content h2 > a.heading-anchor,
-  .post-content h3 > a.heading-anchor,
-  .post-content h4 > a.heading-anchor {
-    color: inherit;
-    text-decoration: none;
-    font-weight: inherit;
-  }
+.post-content blockquote p {
+  color: inherit;
+}
 
-  .post-content h2 > a.heading-anchor:hover,
-  .post-content h3 > a.heading-anchor:hover,
-  .post-content h4 > a.heading-anchor:hover {
-    text-decoration: underline;
-    text-decoration-color: hotpink;
-    text-decoration-thickness: 2px;
-  }
+/* =========================================================
+   LISTS
+========================================================= */
+.post-content ul,
+.post-content ol {
+  padding-left: 30px;
+}
 
-  .post-content h2 > a.heading-anchor::before,
-  .post-content h3 > a.heading-anchor::before,
-  .post-content h4 > a.heading-anchor::before {
-    content: "#";
-    display: inline-block;
-    margin-right: 10px;
-    color: hotpink;
-    opacity: 0;
-    transform: translateX(-6px);
-    transition: opacity 0.15s ease, transform 0.15s ease;
-  }
+/* =========================================================
+   GALLERY MODAL (NO SCROLL, FULL IMAGE FIT)
+========================================================= */
+.gallery-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.72);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
 
-  .post-content h2:hover > a.heading-anchor::before,
-  .post-content h3:hover > a.heading-anchor::before,
-  .post-content h4:hover > a.heading-anchor::before,
-  .post-content h2 > a.heading-anchor:focus-visible::before,
-  .post-content h3 > a.heading-anchor:focus-visible::before,
-  .post-content h4 > a.heading-anchor:focus-visible::before {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.gallery-modal.is-open {
+  display: flex;
+}
 
-  /* ------------------------------
-     Figures: centered + boxed (caption inside)
-  -------------------------------- */
-  .post-content figure {
-    margin: 18px auto;
-    max-width: min(820px, 100%);
-    border: 2px solid rgba(38, 52, 85, 0.9);
-    border-radius: 18px;
-    overflow: hidden;
-    background: rgba(15, 23, 42, 0.45);
-    box-shadow: var(--shadow);
-  }
+.gallery-dialog {
+  width: min(1100px, 96vw);
+  height: min(92vh, 920px);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(11, 18, 36, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+}
 
-  /* Gallery image styling + min width 500px (responsive) */
-  .post-content figure img {
-    display: block;
-    width: 100%;
-    height: auto;
-    margin: 0 auto;
-    min-width: 500px;
-    max-width: 100%;
-    cursor: zoom-in;
-  }
+.gallery-bar,
+.gallery-caption {
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(255, 255, 255, 0.12);
+  position: relative;
+  z-index: 2;
+}
 
-  /* On small screens, allow it to shrink */
-  @media (max-width: 560px) {
-    .post-content figure img { min-width: 0; }
-  }
+.gallery-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
 
-  .post-content figure figcaption {
-    padding: 12px 14px;
-    background: plum;
-    color: hotpink;
-    font-family: "Comic Sans MS", cursive;
-    font-weight: 700;
-    text-align: center;
-    border-top: 2px solid rgba(38, 52, 85, 0.9);
-  }
+.gallery-caption {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 700;
+}
 
-  /* ------------------------------
-     Blockquotes: gradient, bold white, rounded
-  -------------------------------- */
-  .post-content blockquote {
-    margin: 18px 0;
-    padding: 16px 18px;
-    border-radius: 18px;
-    background-image: linear-gradient(to bottom, DarkSlateBlue, Purple);
-    color: #fff;
-    font-weight: 800;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.35);
-  }
-  .post-content blockquote p { color: inherit; }
-  .post-content blockquote > :first-child { margin-top: 0; }
-  .post-content blockquote > :last-child { margin-bottom: 0; }
+.gallery-actions {
+  display: flex;
+  gap: 10px;
+}
 
-  /* ------------------------------
-     Lists: indent 30px
-  -------------------------------- */
-  .post-content ul,
-  .post-content ol {
-    padding-left: 30px;
-  }
+.gallery-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+}
 
-  /* ------------------------------
-     Gallery modal
-  -------------------------------- */
-  .gallery-modal {
-    position: fixed;
-    inset: 0;
-    display: none;
-    z-index: 9999;
-    background: rgba(0, 0, 0, 0.72);
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
-  .gallery-modal.is-open { display: flex; }
+.gallery-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  overflow: hidden;
+}
 
-  .gallery-dialog {
-    width: min(1100px, 96vw);
-    max-height: 92vh;
-    border-radius: 18px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    background: rgba(11, 18, 36, 0.85);
-    backdrop-filter: blur(10px);
-    box-shadow: var(--shadow);
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-  }
+.gallery-stage img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
 
-  .gallery-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 12px 14px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  }
+/* Invisible click zones for prev / next */
+.gallery-navzone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 22%;
+  cursor: pointer;
+  z-index: 1;
+}
 
-  .gallery-title {
-    color: var(--muted);
-    font-weight: 700;
-    font-size: 0.95rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .gallery-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .gallery-btn {
-    appearance: none;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    background: rgba(148, 163, 184, 0.12);
-    color: var(--text);
-    border-radius: 999px;
-    padding: 8px 12px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .gallery-btn:hover { transform: translateY(-1px); }
-
-  .gallery-stage {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    overflow: auto;
-  }
-
-  .gallery-stage img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    cursor: default;
-  }
-
-  .gallery-caption {
-    padding: 12px 14px;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(15, 23, 42, 0.55);
-    color: var(--text);
-    font-weight: 700;
-  }
-
-  /* big prev/next click targets on sides */
-  .gallery-navzone {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 22%;
-    cursor: pointer;
-  }
-  .gallery-navzone.prev { left: 0; }
-  .gallery-navzone.next { right: 0; }
+.gallery-navzone.prev { left: 0; }
+.gallery-navzone.next { right: 0; }
 </style>
 
 <div class="container post-layout">
@@ -416,88 +417,103 @@ layout: default
     headings.forEach((h) => io.observe(h));
 
     // ---------- Image gallery modal ----------
-    const modal = document.getElementById("galleryModal");
-    const imgEl = document.getElementById("galleryImage");
-    const capEl = document.getElementById("galleryCaption");
-    const titleEl = document.getElementById("galleryTitle");
-    const btnPrev = document.getElementById("galleryPrev");
-    const btnNext = document.getElementById("galleryNext");
-    const btnClose = document.getElementById("galleryClose");
-    const zonePrev = document.getElementById("galleryZonePrev");
-    const zoneNext = document.getElementById("galleryZoneNext");
+const modal = document.getElementById("galleryModal");
+const dialog = modal ? modal.querySelector(".gallery-dialog") : null;
+const imgEl = document.getElementById("galleryImage");
+const capEl = document.getElementById("galleryCaption");
+const titleEl = document.getElementById("galleryTitle");
+const btnPrev = document.getElementById("galleryPrev");
+const btnNext = document.getElementById("galleryNext");
+const btnClose = document.getElementById("galleryClose");
+const zonePrev = document.getElementById("galleryZonePrev");
+const zoneNext = document.getElementById("galleryZoneNext");
 
-    // Use images inside figures in the post content as the gallery items
-    const galleryItems = Array.from(root.querySelectorAll("figure img")).map((img) => {
-      const fig = img.closest("figure");
-      const cap = fig ? fig.querySelector("figcaption") : null;
-      return {
-        el: img,
-        src: img.currentSrc || img.src,
-        alt: img.alt || "",
-        caption: cap ? cap.textContent.trim() : ""
-      };
-    });
+const galleryItems = Array.from(root.querySelectorAll("figure img")).map((img) => {
+  const fig = img.closest("figure");
+  const cap = fig ? fig.querySelector("figcaption") : null;
+  return {
+    el: img,
+    src: img.currentSrc || img.src,
+    alt: img.alt || "",
+    caption: cap ? cap.textContent.trim() : ""
+  };
+});
 
-    if (galleryItems.length) {
-      // Mark as clickable (cursor already set in CSS)
-      galleryItems.forEach((item, idx) => {
-        item.el.dataset.galleryIndex = String(idx);
-        item.el.addEventListener("click", () => openAt(idx));
-      });
-    }
+let current = 0;
+let lastFocused = null;
 
-    let current = 0;
-    let lastFocused = null;
+function renderGallery() {
+  const item = galleryItems[current];
+  imgEl.src = item.src;
+  imgEl.alt = item.alt || "";
+  capEl.textContent = item.caption || "";
+  titleEl.textContent = `Image ${current + 1} of ${galleryItems.length}`;
+}
 
-    function render() {
-      const item = galleryItems[current];
-      imgEl.src = item.src;
-      imgEl.alt = item.alt || "";
-      capEl.textContent = item.caption || "";
-      titleEl.textContent = `Image ${current + 1} of ${galleryItems.length}`;
-      btnPrev.disabled = galleryItems.length < 2;
-      btnNext.disabled = galleryItems.length < 2;
-    }
+function openAt(i) {
+  if (!galleryItems.length) return;
+  current = ((i % galleryItems.length) + galleryItems.length) % galleryItems.length;
+  lastFocused = document.activeElement;
 
-    function openAt(i) {
-      if (!galleryItems.length) return;
-      current = ((i % galleryItems.length) + galleryItems.length) % galleryItems.length;
-      lastFocused = document.activeElement;
+  renderGallery();
+  modal.classList.add("is-open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  btnClose && btnClose.focus();
+}
 
-      render();
-      modal.classList.add("is-open");
-      modal.setAttribute("aria-hidden", "false");
-      document.body.style.overflow = "hidden";
-      btnClose.focus();
-    }
+function closeGallery() {
+  modal.classList.remove("is-open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  if (lastFocused && lastFocused.focus) lastFocused.focus();
+}
 
-    function close() {
-      modal.classList.remove("is-open");
-      modal.setAttribute("aria-hidden", "true");
-      document.body.style.overflow = "";
-      if (lastFocused && lastFocused.focus) lastFocused.focus();
-    }
+function prevImage() {
+  if (!galleryItems.length) return;
+  openAt(current - 1);
+}
 
-    function prev() { openAt(current - 1); }
-    function next() { openAt(current + 1); }
+function nextImage() {
+  if (!galleryItems.length) return;
+  openAt(current + 1);
+}
 
-    btnPrev.addEventListener("click", prev);
-    btnNext.addEventListener("click", next);
-    btnClose.addEventListener("click", close);
-    zonePrev.addEventListener("click", prev);
-    zoneNext.addEventListener("click", next);
+// Click any gallery image to open
+galleryItems.forEach((item, idx) => {
+  item.el.dataset.galleryIndex = String(idx);
+  item.el.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openAt(idx);
+  });
+});
 
-    // Close on backdrop click (but not when clicking the dialog)
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) close();
-    });
+// Button wiring (stopPropagation prevents navzones/backdrop from hijacking clicks)
+if (btnPrev) btnPrev.addEventListener("click", (e) => { e.stopPropagation(); prevImage(); });
+if (btnNext) btnNext.addEventListener("click", (e) => { e.stopPropagation(); nextImage(); });
+if (btnClose) btnClose.addEventListener("click", (e) => { e.stopPropagation(); closeGallery(); });
 
-    // Keyboard support
-    document.addEventListener("keydown", (e) => {
-      if (!modal.classList.contains("is-open")) return;
-      if (e.key === "Escape") close();
-      if (e.key === "ArrowLeft") prev();
-      if (e.key === "ArrowRight") next();
-    });
-  })();
+// Side click zones
+if (zonePrev) zonePrev.addEventListener("click", (e) => { e.stopPropagation(); prevImage(); });
+if (zoneNext) zoneNext.addEventListener("click", (e) => { e.stopPropagation(); nextImage(); });
+
+// Backdrop click closes (but clicks inside dialog do not)
+if (modal) {
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeGallery();
+  });
+}
+if (dialog) {
+  dialog.addEventListener("click", (e) => e.stopPropagation());
+}
+
+// Keyboard
+document.addEventListener("keydown", (e) => {
+  if (!modal || !modal.classList.contains("is-open")) return;
+  if (e.key === "Escape") closeGallery();
+  if (e.key === "ArrowLeft") prevImage();
+  if (e.key === "ArrowRight") nextImage();
+});
+
 </script>
