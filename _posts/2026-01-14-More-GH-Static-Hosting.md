@@ -26,5 +26,5 @@ Just adding the repository and file info is all you need to do to have it as an 
 
 This is a variation on GistHost.github.io that adds another option for you and your projects.
 
-<p style="font-size: x-large">🆒🆒🆒...</p>
+<p style="font-size: 30px">🆒🆒🆒...</p>
 
