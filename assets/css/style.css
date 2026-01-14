@@ -345,6 +345,89 @@ img {
   margin-bottom: 24px;
 }
 
+/* =========================================================
+   POST LAYOUT: 250px sidenav + 800px content (left-justified)
+========================================================= */
+.post-shell {
+  display: flex;
+  gap: 24px;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.post-sidenav {
+  width: 250px;
+  flex: 0 0 250px;
+  position: sticky;
+  top: 96px;
+  padding: 14px 12px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(38, 52, 85, 0.6);
+  max-height: none;
+  overflow: visible;
+}
+
+.post-sidenav .sidenav-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.post-sidenav nav a {
+  display: block;
+  padding: 6px 8px;
+  border-radius: 10px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 700;
+  line-height: 1.25;
+  border: 1px solid transparent;
+}
+
+.post-sidenav nav a:hover,
+.post-sidenav nav a:focus {
+  color: var(--text);
+  border-color: rgba(236, 72, 153, 0.45);
+  background: rgba(236, 72, 153, 0.10);
+  outline: none;
+}
+
+.post-sidenav nav a.is-active {
+  color: var(--text);
+  border-color: rgba(236, 72, 153, 0.65);
+  background: rgba(236, 72, 153, 0.18);
+}
+
+/* TOC hierarchy: smaller white text for h3/h4 */
+.post-sidenav nav a.level-h2 {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.post-sidenav nav a.level-h3 {
+  font-size: 0.8rem;
+  color: #ffffff;
+  font-weight: 600;
+  padding-left: 18px;
+  opacity: 0.85;
+}
+
+.post-sidenav nav a.level-h4 {
+  font-size: 0.75rem;
+  color: #ffffff;
+  font-weight: 500;
+  padding-left: 30px;
+  opacity: 0.85;
+}
+
+.post-main {
+  width: 800px;
+  flex: 0 0 800px;
+  min-width: 0;
+}
+
 .post-content {
   display: grid;
   gap: 16px;
@@ -356,6 +439,262 @@ img {
 
 .post-content p {
   color: #d6e1f0;
+}
+
+/* =========================================================
+   ANCHORED HEADINGS (h2–h4)
+========================================================= */
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+  position: relative;
+  scroll-margin-top: 96px;
+}
+
+.post-content h2 > a.heading-anchor,
+.post-content h3 > a.heading-anchor,
+.post-content h4 > a.heading-anchor {
+  color: inherit;
+  text-decoration: none;
+  font-weight: inherit;
+}
+
+.post-content h2 > a.heading-anchor:hover,
+.post-content h3 > a.heading-anchor:hover,
+.post-content h4 > a.heading-anchor:hover {
+  text-decoration: underline;
+  text-decoration-color: hotpink;
+  text-decoration-thickness: 2px;
+}
+
+.post-content h2 > a.heading-anchor::before,
+.post-content h3 > a.heading-anchor::before,
+.post-content h4 > a.heading-anchor::before {
+  content: "#";
+  display: inline-block;
+  margin-right: 10px;
+  color: hotpink;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.post-content h2:hover > a.heading-anchor::before,
+.post-content h3:hover > a.heading-anchor::before,
+.post-content h4:hover > a.heading-anchor::before,
+.post-content h2 > a.heading-anchor:focus-visible::before,
+.post-content h3 > a.heading-anchor:focus-visible::before,
+.post-content h4 > a.heading-anchor:focus-visible::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* =========================================================
+   FIGURES: boxed, max 80% width, caption on top (left-justified)
+========================================================= */
+.post-content figure {
+  margin: 18px auto;
+  max-width: 80%;
+  border: 2px solid rgba(38, 52, 85, 0.9);
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.45);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.post-content figure figcaption {
+  order: -1;
+  padding: 12px 14px;
+  background: DarkSlateBlue;
+  color: hotpink;
+  font-family: "Comic Sans MS", cursive;
+  font-weight: 700;
+  text-align: left;
+  border-bottom: 2px solid rgba(38, 52, 85, 0.9);
+}
+
+.post-content figure img,
+.post-content figure video,
+.post-content figure iframe {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  min-width: 500px;
+  max-width: 100%;
+  cursor: zoom-in;
+}
+
+@media (max-width: 560px) {
+  .post-content figure img,
+  .post-content figure video,
+  .post-content figure iframe {
+    min-width: 0;
+  }
+}
+
+/* =========================================================
+   BLOCKQUOTES
+========================================================= */
+.post-content blockquote {
+  margin: 18px 0;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background-image: linear-gradient(to bottom, DarkSlateBlue, Purple);
+  color: #fff;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.35);
+}
+
+.post-content blockquote p {
+  color: inherit;
+}
+
+.post-content blockquote a {
+  color: #fff;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.7);
+}
+
+.post-content blockquote > :first-child {
+  margin-top: 0;
+}
+
+.post-content blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* =========================================================
+   LISTS: indent 30px
+========================================================= */
+.post-content ul,
+.post-content ol {
+  padding-left: 30px;
+}
+
+/* =========================================================
+   GALLERY MODAL (NO SCROLL, FULL IMAGE FIT)
+========================================================= */
+.gallery-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.72);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.gallery-modal.is-open {
+  display: flex;
+}
+
+.gallery-dialog {
+  width: min(1100px, 96vw);
+  height: min(92vh, 920px);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(11, 18, 36, 0.85);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.gallery-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.55);
+  position: relative;
+  z-index: 2;
+}
+
+.gallery-title {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gallery-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.gallery-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+}
+
+.gallery-btn:hover {
+  transform: translateY(-1px);
+}
+
+.gallery-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.gallery-stage img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  cursor: default;
+}
+
+.gallery-caption {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.55);
+  color: var(--text);
+  font-weight: 700;
+  position: relative;
+  z-index: 2;
+}
+
+/* prev/next click zones */
+.gallery-navzone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 22%;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.gallery-navzone.prev {
+  left: 0;
+}
+
+.gallery-navzone.next {
+  right: 0;
 }
 
 .page-layout {
@@ -379,5 +718,21 @@ img {
   }
   .nav-links {
     display: none;
+  }
+
+  .post-shell {
+    flex-direction: column;
+  }
+
+  .post-sidenav {
+    width: 100%;
+    flex: 1 1 auto;
+    position: relative;
+    top: auto;
+  }
+
+  .post-main {
+    width: 100%;
+    flex: 1 1 auto;
   }
 }
