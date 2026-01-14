@@ -1,6 +1,6 @@
 ---
 title: "Back Scraping the Ice: Reactivating Data Collection on the Rideau Canal Repo"
-category: "Product"
+category: "Data Products"
 mermaid: true
 ---
 
