@@ -11,8 +11,8 @@ hero:
   image: "/assets/images/hero-illustration.svg"
 profile:
   name: "Pat Little"
-  role: "Data and Analytics Leader"
-  bio: "I help teams do Open Data."
+  role: "Dude Doing Data and Analytics"
+  bio: "Opening the Open Data, Trying to enable others, Learning along the way."
   avatar: "/assets/images/avatar-head.png"
 sections:
   highlights_title: "Projects in Progress"
@@ -31,10 +31,10 @@ sections:
       link: "https://patlittle.github.io/GC-Ref-Data-Tracker/index.html"
   topics_title: "Topics"
   topics:
-    - "Product"
+    - "Data Products"
     - "AI"
-    - "Systems"
-    - "Travel"
+    - "Development & Systems"
+    - "Travel / Personal"
 social:
   github:
     label: "GitHub"
