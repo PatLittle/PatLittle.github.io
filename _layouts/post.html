@@ -139,9 +139,10 @@ const galleryItems = Array.from(root.querySelectorAll("figure img")).map((img) =
     el: img,
     src: img.currentSrc || img.src,
     alt: img.alt || "",
-    caption: cap ? cap.textContent.trim() : ""
+    captionHTML: cap ? cap.innerHTML : ""
   };
 });
+
 
 let current = 0;
 let lastFocused = null;
@@ -150,7 +151,7 @@ function renderGallery() {
   const item = galleryItems[current];
   imgEl.src = item.src;
   imgEl.alt = item.alt || "";
-  capEl.textContent = item.caption || "";
+  capEl.innerHTML = item.captionHTML || "";
   titleEl.textContent = `Image ${current + 1} of ${galleryItems.length}`;
 }
 
