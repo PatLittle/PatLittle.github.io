@@ -508,9 +508,9 @@ img {
   order: -1;
   padding: 12px 14px;
   background: DarkSlateBlue;
-  color: hotpink;
+  color: White;
   font-family: "Comic Sans MS", cursive;
-  font-weight: 700;
+  font-weight: 550;
   text-align: left;
   border-bottom: 2px solid rgba(38, 52, 85, 0.9);
 }
