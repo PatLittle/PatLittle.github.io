@@ -1,6 +1,120 @@
 ---
 layout: default
 ---
+
+<style>
+  /* ------------------------------
+     Post template: anchored headings (h2–h4)
+  -------------------------------- */
+  .post-content h2,
+  .post-content h3,
+  .post-content h4 {
+    position: relative;
+    scroll-margin-top: 96px; /* accounts for sticky header */
+  }
+
+  .post-content h2 > a.heading-anchor,
+  .post-content h3 > a.heading-anchor,
+  .post-content h4 > a.heading-anchor {
+    color: inherit;
+    text-decoration: none;
+    font-weight: inherit;
+  }
+
+  .post-content h2 > a.heading-anchor:hover,
+  .post-content h3 > a.heading-anchor:hover,
+  .post-content h4 > a.heading-anchor:hover {
+    text-decoration: underline;
+    text-decoration-color: hotpink;
+    text-decoration-thickness: 2px;
+  }
+
+  .post-content h2 > a.heading-anchor::before,
+  .post-content h3 > a.heading-anchor::before,
+  .post-content h4 > a.heading-anchor::before {
+    content: "#";
+    display: inline-block;
+    margin-right: 10px;
+    color: hotpink;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .post-content h2:hover > a.heading-anchor::before,
+  .post-content h3:hover > a.heading-anchor::before,
+  .post-content h4:hover > a.heading-anchor::before,
+  .post-content h2 > a.heading-anchor:focus-visible::before,
+  .post-content h3 > a.heading-anchor:focus-visible::before,
+  .post-content h4 > a.heading-anchor:focus-visible::before {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* ------------------------------
+     Figures: centered + boxed (caption inside the box too)
+  -------------------------------- */
+  .post-content figure {
+    margin: 18px auto;
+    max-width: min(820px, 100%);
+    border: 2px solid rgba(38, 52, 85, 0.9);
+    border-radius: 18px;
+    overflow: hidden; /* keeps caption inside rounded corners */
+    background: rgba(15, 23, 42, 0.45);
+    box-shadow: var(--shadow);
+  }
+
+  .post-content figure img,
+  .post-content figure video,
+  .post-content figure iframe {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+
+  .post-content figure figcaption {
+    padding: 12px 14px;
+    background: plum;
+    color: hotpink;
+    font-family: "Comic Sans MS", cursive;
+    font-weight: 700;
+    text-align: center;
+    border-top: 2px solid rgba(38, 52, 85, 0.9);
+  }
+
+  /* ------------------------------
+     Blockquotes: gradient background, bold white text, rounded corners
+  -------------------------------- */
+  .post-content blockquote {
+    margin: 18px 0;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background-image: linear-gradient(to bottom, DarkSlateBlue, Purple);
+    color: #fff;
+    font-weight: 800;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.35);
+  }
+
+  .post-content blockquote p {
+    color: inherit; /* overrides your .post-content p color */
+  }
+
+  .post-content blockquote a {
+    color: #fff;
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 255, 255, 0.7);
+  }
+
+  .post-content blockquote > :first-child {
+    margin-top: 0;
+  }
+  .post-content blockquote > :last-child {
+    margin-bottom: 0;
+  }
+</style>
+
 <div class="container post-layout">
   <h1>{{ page.title }}</h1>
   <div class="post-meta">{{ page.date | date: '%B %d, %Y' }} · {{ page.category | default: 'Writing' }}</div>
@@ -8,3 +122,44 @@ layout: default
     {{ content }}
   </div>
 </div>
+
+<script>
+  (function () {
+    const root = document.querySelector(".post-content");
+    if (!root) return;
+
+    const slugify = (text) =>
+      text
+        .toLowerCase()
+        .trim()
+        .replace(/[\s]+/g, "-")
+        .replace(/[^\w\-]+/g, "")
+        .replace(/\-+/g, "-");
+
+    const used = new Map();
+    const uniqueId = (base) => {
+      const n = used.get(base) || 0;
+      used.set(base, n + 1);
+      return n ? `${base}-${n + 1}` : base;
+    };
+
+    root.querySelectorAll("h2, h3, h4").forEach((h) => {
+      // If heading already contains a link, don't double-wrap.
+      if (h.querySelector("a")) return;
+
+      // Ensure heading has an id
+      let id = h.id && h.id.trim() ? h.id.trim() : slugify(h.textContent);
+      if (!id) return;
+      id = uniqueId(id);
+      h.id = id;
+
+      // Wrap heading content in an anchor (keeps inline markup)
+      const a = document.createElement("a");
+      a.className = "heading-anchor";
+      a.href = `#${id}`;
+
+      while (h.firstChild) a.appendChild(h.firstChild);
+      h.appendChild(a);
+    });
+  })();
+</script>
