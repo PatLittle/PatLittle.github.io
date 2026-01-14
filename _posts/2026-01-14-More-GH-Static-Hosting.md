@@ -5,9 +5,12 @@ category: "Development & Systems"
 
 In my last post I talked about the [https://Gisthost.github.io](https://gisthost.github.io/) tool that Simon Willison revived by forking a version from a project that was no longer being maintained. 
 
-## Flip back a post to see that Here:
-
+>Flip back a post to see that Here:
+>
 >[https://patlittle.github.io/blog/gisthost/](https://patlittle.github.io/blog/gisthost/)
+
+
+## Update
 
 Since posting that a few days ago, I noticed Simon created another project in GitHub [orphanhost.github.io](https://github.com/orphanhost/orphanhost.github.io).
 
