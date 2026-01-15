@@ -12,7 +12,7 @@ hero:
 profile:
   name: "Pat Little"
   role: "Dude Doing Data"
-  bio: "More of a notebok than broadcast really."
+  bio: "More of a notebook than broadcast really."
   avatar: "/assets/images/avatar-head.png"
 sections:
   highlights_title: "Projects in Progress"
