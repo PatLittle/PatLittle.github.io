@@ -2,7 +2,7 @@ hero:
   greeting: "Hi! I'm Pat"
   emoji: "👋"
   title: "A tinkerer, data nerd, and lifelong learner."
-  blurb: "I write about open data, digital policy, and try to share useful tidbits for open data producers and consumers."
+  blurb: "I probaly wrote the all the parts you thought we AI slop."
   cta_primary: "Read the Blog"
   cta_primary_link: "#latest"
   cta_secondary: "View Resume"
@@ -11,8 +11,8 @@ hero:
   image: "/assets/images/hero-illustration.svg"
 profile:
   name: "Pat Little"
-  role: "Dude Doing Data and Analytics"
-  bio: "Opening the Open Data, Trying to enable others, Learning along the way."
+  role: "Dude Doing Data"
+  bio: "More of a notebok than broadcast really."
   avatar: "/assets/images/avatar-head.png"
 sections:
   highlights_title: "Projects in Progress"
