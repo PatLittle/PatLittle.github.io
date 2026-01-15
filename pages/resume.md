@@ -4,7 +4,7 @@ title: "Resume"
 permalink: /resume/
 ---
 
-Download the latest resume: [LinkedIn](https://www.linkedin.com/in/patrickjlittle/))
+Download the latest resume: [LinkedIn](https://www.linkedin.com/in/patrickjlittle/)
 
 ## Experience
 
@@ -40,6 +40,10 @@ standard tools for open source development including GitHub.
 **Policy Analyst and Junior Project Manager** - Web Renewal Initative | TBS | OCIO (Jan 2015 - April 2017) 
   - Served as a key member of the Project Management Office during the Government of Canada Web Renewal Initiative,
   which moved more than 50 GC Departments on to Canada.ca from a web of different legacy websites.
+
+**Artillery Officer** - Department of National Defence (Nov 2004 - Oct 2012)
+  - Served as an Air Defence Artilleryman in 1AD Petawawa, then as a Field Artillery Gunner in 30th FD RCA Ottawa,
+  - Then commissioned as a Field Artillery Officer, primarily serving in W Battery then 1st Regiment, Royal Canadian Horse Artillery in Shilo MB  
 
 ## Skills
 - Product strategy & roadmapping
