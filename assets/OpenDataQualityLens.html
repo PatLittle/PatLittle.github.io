@@ -1,0 +1,504 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="FAIR metadata and data quality evaluator for open.canada.ca">
+  <title>Open Data Quality Lens</title>
+  <style>
+    :root{
+      --ink:#102a2e;--muted:#597176;--paper:#f3f7f4;--card:#fff;--line:#d7e3df;
+      --green:#087f5b;--green2:#dff6ed;--amber:#c66a05;--amber2:#fff2d9;
+      --red:#c23b31;--red2:#fee9e6;--blue:#1769aa;--blue2:#e4f1fb;--navy:#143b48;
+      --shadow:0 12px 40px rgba(25,65,68,.09);--radius:18px
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input{font:inherit} button{cursor:pointer}
+    a{color:var(--blue)}
+    .topbar{height:6px;background:linear-gradient(90deg,#df2f36 0 22%,#f1b72b 22% 40%,#16865f 40% 72%,#246ca6 72%)}
+    header{background:var(--navy);color:#fff;padding:26px clamp(18px,5vw,72px) 32px;position:relative;overflow:hidden}
+    header:after{content:"";position:absolute;width:420px;height:420px;border:1px solid rgba(255,255,255,.1);border-radius:50%;right:-160px;top:-250px;box-shadow:0 0 0 70px rgba(255,255,255,.025),0 0 0 140px rgba(255,255,255,.02)}
+    .brand-row{display:flex;align-items:center;justify-content:space-between;gap:18px;position:relative;z-index:1}.brand{display:flex;gap:13px;align-items:center}
+    .header-nav{display:flex;gap:7px}.header-nav button{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.07);color:#fff;border-radius:9px;padding:7px 12px;font-weight:800}.header-nav button:hover{background:rgba(255,255,255,.15)}
+    .mark{width:38px;height:38px;border-radius:11px;background:#fff;color:var(--navy);display:grid;place-items:center;font-weight:900;letter-spacing:-2px}
+    .brand h1{font-size:18px;margin:0}.brand span{display:block;color:#b9d4d7;font-size:12px;font-weight:500;letter-spacing:.04em}
+    .hero{max-width:850px;margin:42px auto 8px;text-align:center;position:relative;z-index:1}
+    .eyebrow{text-transform:uppercase;letter-spacing:.14em;font-weight:800;font-size:11px;color:#87d7bd}
+    .hero h2{font-size:clamp(32px,5vw,54px);line-height:1.04;letter-spacing:-.045em;margin:12px 0}
+    .hero p{color:#c4dadd;font-size:16px;max-width:620px;margin:0 auto 24px}
+    .search{display:flex;gap:8px;background:#fff;padding:7px;border-radius:15px;box-shadow:0 16px 42px rgba(0,0,0,.18);max-width:690px;margin:auto}
+    .search input{min-width:0;flex:1;border:0;outline:0;padding:12px;color:var(--ink);background:transparent}
+    .primary{border:0;background:var(--green);color:#fff;border-radius:10px;padding:11px 18px;font-weight:800}
+    .primary:hover{background:#076e50}.primary:disabled{opacity:.55;cursor:wait}
+    main{max-width:1240px;margin:0 auto;padding:30px clamp(14px,4vw,45px) 70px}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin:8px 0 15px}
+    .section-head h2{margin:0;font-size:22px;letter-spacing:-.025em}.section-head p{margin:3px 0 0;color:var(--muted)}
+    .ghost{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 12px;font-weight:750}
+    .ghost:hover{border-color:#9db8b1}.dataset-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .browse-actions{text-align:center;margin-top:18px}.source-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}.source-links a{display:inline-flex;border:1px solid var(--line);background:#fff;color:var(--blue);border-radius:9px;padding:7px 10px;font-size:12px;font-weight:800;text-decoration:none}.source-links a:hover{border-color:var(--blue)}
+    .dataset{border:1px solid var(--line);background:var(--card);border-radius:var(--radius);padding:18px;text-align:left;color:inherit;box-shadow:0 3px 15px rgba(20,59,72,.03);transition:.18s;min-height:188px;display:flex;flex-direction:column}
+    .dataset:hover{transform:translateY(-3px);border-color:#9abdb3;box-shadow:var(--shadow)}
+    .dataset h3{font-size:16px;line-height:1.35;letter-spacing:-.015em;margin:12px 0 8px}.dataset p{color:var(--muted);font-size:13px;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .dataset footer{margin-top:auto;padding-top:14px;display:flex;justify-content:space-between;color:var(--muted);font-size:11px;font-weight:700}
+    .pill{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:4px 9px;background:#edf4f1;color:#37635d;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.06em}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+    .hidden{display:none!important}.loading{padding:60px;text-align:center;color:var(--muted)}.spinner{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}@keyframes spin{to{transform:rotate(360deg)}}
+    .error{background:var(--red2);color:#8b2c26;border:1px solid #f6c8c3;border-radius:12px;padding:12px 14px;margin:12px 0}
+    .detail-top{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--shadow)}
+    .crumb{color:var(--green);font-weight:800;border:0;background:none;padding:0;margin-bottom:16px}
+    .detail-title{display:flex;align-items:flex-start;justify-content:space-between;gap:22px}
+    .detail-title h2{font-size:clamp(25px,4vw,38px);line-height:1.12;letter-spacing:-.04em;margin:5px 0 9px}.detail-title p{color:var(--muted);max-width:800px;margin:0}
+    .markdown{color:var(--muted);max-width:820px;overflow-wrap:anywhere}.markdown>*:first-child{margin-top:0}.markdown>*:last-child{margin-bottom:0}.markdown h1,.markdown h2,.markdown h3{color:var(--ink);letter-spacing:-.02em;line-height:1.25;margin:18px 0 8px}.markdown h1{font-size:22px}.markdown h2{font-size:19px}.markdown h3{font-size:16px}.markdown p{margin:0 0 11px}.markdown ul,.markdown ol{padding-left:22px}.markdown blockquote{border-left:4px solid var(--line);margin:12px 0;padding:4px 13px;color:var(--muted)}.markdown code{background:#edf4f1;color:var(--navy);border-radius:5px;padding:1px 4px}.markdown pre{background:var(--navy);color:#e9f5f2;border-radius:11px;padding:13px;overflow:auto}.markdown pre code{background:none;color:inherit;padding:0}.markdown img{max-width:100%;height:auto;border-radius:12px}.description-audit{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+    .score-ring{--score:0;flex:0 0 108px;width:108px;height:108px;border-radius:50%;background:conic-gradient(var(--green) calc(var(--score)*1%),#e7efec 0);display:grid;place-items:center;position:relative}
+    .score-ring:after{content:"";position:absolute;inset:10px;border-radius:50%;background:#fff}.score-ring strong,.score-ring small{position:relative;z-index:1}.score-ring strong{font-size:28px;line-height:1;display:block;text-align:center}.score-ring small{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase}
+    .tabs{display:flex;gap:5px;margin:22px 0 16px;overflow:auto;padding:3px}.tab{white-space:nowrap;border:0;background:transparent;border-radius:10px;padding:9px 13px;color:var(--muted);font-weight:800}.tab.active{background:var(--navy);color:#fff}
+    .panel{display:none}.panel.active{display:block}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric,.box{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:17px}
+    .metric label{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.metric strong{font-size:25px;letter-spacing:-.04em;display:block;margin-top:5px}.metric small{color:var(--muted)}
+    .two-col{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:14px}.box h3{font-size:15px;margin:0 0 13px}.box p{color:var(--muted)}
+    .fair-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.fair{border:1px solid var(--line);background:#fff;border-radius:16px;overflow:hidden}.fair-head{padding:17px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}.fair-head h3{margin:0;font-size:17px}.letter{width:31px;height:31px;border-radius:9px;background:var(--blue2);color:var(--blue);display:grid;place-items:center;font-weight:900}.bar{height:7px;background:#e7efec;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--green);border-radius:99px}.checklist{list-style:none;padding:7px 17px 14px;margin:0}.checklist li{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid #edf2f0;font-size:13px}.checklist li:last-child{border:0}.status{flex:0 0 18px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:900}.pass{background:var(--green2);color:var(--green)}.warn{background:var(--amber2);color:var(--amber)}.fail{background:var(--red2);color:var(--red)}
+    .recs{display:grid;gap:9px}.rec{border-left:4px solid var(--amber);background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 2px 9px rgba(20,59,72,.04)}.rec.high{border-color:var(--red)}.rec.low{border-color:var(--blue)}.rec strong{font-size:13px}.rec p{font-size:12px;color:var(--muted);margin:3px 0 0}
+    .schema-row,.resource{border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px;margin-bottom:9px}.schema-row{display:flex;gap:12px;justify-content:space-between;align-items:center}.schema-row code{font-weight:800;color:var(--navy)}.schema-row span{font-size:12px;color:var(--muted)}
+    .resource-head{display:flex;gap:12px;align-items:flex-start}.format{flex:0 0 46px;height:46px;border-radius:10px;background:var(--blue2);color:var(--blue);display:grid;place-items:center;font-size:10px;font-weight:900}.resource h3{margin:1px 0 3px;font-size:14px}.resource p{margin:0;color:var(--muted);font-size:12px}.resource .tags{margin:12px 0 2px;display:flex;gap:6px;flex-wrap:wrap}.tag{font-size:10px;font-weight:800;padding:3px 7px;border-radius:7px;background:#eef4f2;color:#45625e}.tag.good{background:var(--green2);color:var(--green)}.tag.bad{background:var(--red2);color:var(--red)}
+    .audit{margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden}.audit-row{display:grid;grid-template-columns:74px minmax(150px,.8fr) 1.2fr;gap:10px;padding:10px 11px;border-bottom:1px solid var(--line);align-items:start}.audit-row:last-child{border:0}.audit-row strong{font-size:12px}.audit-row p{font-size:11px;margin:0;color:var(--muted)}.audit-result{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.audit-result.pass-text{color:var(--green)}.audit-result.fail-text{color:var(--red)}
+    .sample{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}.sample summary{cursor:pointer;font-weight:800;font-size:12px}.sample-stats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.sample-stats span{background:#f3f7f5;padding:5px 8px;border-radius:8px;font-size:11px}
+    .engagement-hero{display:grid;grid-template-columns:1fr 1fr;gap:14px}.big-stat{border-radius:18px;padding:24px;color:#fff;background:var(--navy);min-height:180px}.big-stat:nth-child(2){background:var(--green)}.big-stat label{text-transform:uppercase;letter-spacing:.1em;font-weight:800;font-size:10px;opacity:.75}.big-stat strong{font-size:50px;display:block;line-height:1.1;margin:16px 0 2px;letter-spacing:-.06em}.big-stat p{margin:0;opacity:.75;font-size:12px}
+    .timeliness{margin-top:14px;border:1px solid var(--line);background:#fff;border-radius:16px;padding:17px;display:grid;grid-template-columns:auto 1fr;gap:13px;align-items:start}.timeliness .status{margin-top:2px}.timeliness h3{font-size:15px;margin:0 0 4px}.timeliness p{font-size:12px;color:var(--muted);margin:0}.timeliness.na .status{background:#e8edeb;color:var(--muted)}
+    .action{display:grid;grid-template-columns:42px 1fr auto;gap:13px;align-items:start;border:1px solid var(--line);border-radius:14px;background:#fff;padding:14px;margin-bottom:9px}.priority{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-weight:900;background:var(--red2);color:var(--red)}.action.medium .priority{background:var(--amber2);color:var(--amber)}.action.low .priority{background:var(--blue2);color:var(--blue)}.action h3{font-size:13px;margin:1px 0 3px}.action p{font-size:12px;color:var(--muted);margin:0}.action .pill{align-self:center}
+    .empty{border:1px dashed #b6cac4;border-radius:15px;padding:28px;text-align:center;color:var(--muted)}.note{font-size:12px;color:var(--muted);margin-top:12px}.footer-note{text-align:center;color:var(--muted);font-size:11px;padding-top:30px}
+    .help-intro{background:linear-gradient(135deg,var(--navy),#1d5960);color:#fff;border-radius:22px;padding:clamp(22px,4vw,42px);margin-bottom:18px}.help-intro h2{font-size:clamp(28px,4vw,42px);letter-spacing:-.04em;line-height:1.1;margin:8px 0}.help-intro p{color:#c9dfe0;max-width:760px}.help-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.help-card{border:1px solid var(--line);background:#fff;border-radius:17px;padding:19px}.help-card h3{margin:0 0 7px;font-size:17px}.help-card h4{margin:18px 0 5px;font-size:14px}.help-card p,.help-card li{color:var(--muted);font-size:13px}.help-card ul{padding-left:20px;margin-bottom:0}.help-card .letter{margin-bottom:10px}.help-wide{grid-column:1/-1}.score-key{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}.score-key div{border-radius:11px;padding:11px;font-size:12px;font-weight:800}.score-key .strong{background:var(--green2);color:var(--green)}.score-key .improve{background:var(--amber2);color:var(--amber)}.score-key .attention{background:var(--red2);color:var(--red)}.term{border-top:1px solid var(--line);padding:10px 0}.term:first-of-type{border:0}.term strong{display:block;font-size:13px}.term span{color:var(--muted);font-size:12px}.method{border-top:1px solid var(--line);padding:9px 0}.method:first-of-type{border:0}.method code{color:var(--navy);font-weight:800}.method strong{display:block;font-size:13px}.method span{color:var(--muted);font-size:12px}
+    @media(max-width:900px){.dataset-grid{grid-template-columns:repeat(2,1fr)}.metric-grid{grid-template-columns:repeat(2,1fr)}.two-col,.fair-grid,.help-grid{grid-template-columns:1fr}.help-wide{grid-column:auto}}
+    @media(max-width:600px){header{padding:20px 15px 28px}.brand-row{align-items:flex-start}.header-nav{display:block}.hero{margin-top:30px}.search{flex-direction:column}.dataset-grid,.metric-grid,.engagement-hero,.score-key{grid-template-columns:1fr}.detail-title{display:block}.score-ring{margin-top:18px}.action{grid-template-columns:36px 1fr}.action .pill{display:none}.audit-row{grid-template-columns:70px 1fr}.audit-row p{grid-column:1/-1}}
+  </style>
+</head>
+<body>
+  <div class="topbar"></div>
+  <header>
+    <div class="brand-row"><div class="brand"><div class="mark">OD</div><h1>Open Data Quality Lens<span>FAIR evaluation for open.canada.ca</span></h1></div><nav class="header-nav"><button id="homeBtn">Datasets</button><button id="helpBtn">Help</button></nav></div>
+    <div class="hero">
+      <div class="eyebrow">Measure · understand · improve</div>
+      <h2>How reusable is this dataset?</h2>
+      <p>Evaluate catalogue metadata, resource content, and public engagement against schema requirements and FAIR data principles.</p>
+      <form class="search" id="searchForm"><input id="uuidInput" aria-label="Dataset package UUID" placeholder="Enter a package_id UUID…" autocomplete="off"><button class="primary" id="evaluateBtn">Evaluate dataset</button></form>
+    </div>
+  </header>
+  <main>
+    <section id="browse">
+      <div class="section-head"><div><h2>Recently modified datasets</h2><p>Most recently updated catalogue records, excluding Open Maps (FGP).</p></div><button class="ghost" id="refreshBtn">Refresh</button></div>
+      <div id="browseError"></div><div class="dataset-grid" id="datasetGrid"><div class="loading"><div class="spinner"></div>Loading catalogue…</div></div>
+      <div class="browse-actions"><button class="ghost" id="loadMoreBtn">Load 12 more records</button></div>
+    </section>
+    <section id="detail" class="hidden">
+      <button class="crumb" id="backBtn">← Back to recent datasets</button>
+      <div id="detailLoading" class="loading"><div class="spinner"></div>Evaluating dataset…</div>
+      <div id="detailContent" class="hidden"></div>
+    </section>
+    <section id="help" class="hidden">
+      <button class="crumb" id="helpBackBtn">← Back to datasets</button>
+      <div class="help-intro"><div class="eyebrow">Beginner’s guide</div><h2>Understanding your dataset quality assessment</h2><p>This app checks whether people can find, understand, access, and reuse a dataset. It is a coaching tool, not an official certification. Use the findings to decide what to improve first.</p></div>
+      <div class="help-grid">
+        <article class="help-card help-wide"><h3>How the overall score works</h3><p>The score combines three kinds of evidence. FAIR metadata contributes 55%, required portal schema fields contribute 20%, and resource-level content checks contribute 25%. Engagement statistics are shown for context but do not change the quality score.</p><div class="score-key"><div class="strong">80–100: Strong foundation</div><div class="improve">60–79: Several improvements available</div><div class="attention">0–59: Material improvements needed</div></div><p class="note">A high score does not prove that every data value is correct. A low score often means that users need more context or more reusable delivery formats.</p></article>
+        <article class="help-card"><span class="letter">F</span><h3>Findable</h3><p>Can someone discover the dataset through search and understand what it covers before opening it?</p><ul><li>Use clear titles in English and French.</li><li>Add specific bilingual keywords.</li><li>Write useful bilingual descriptions.</li><li>Keep the stable package UUID.</li></ul></article>
+        <article class="help-card"><span class="letter">A</span><h3>Accessible</h3><p>Can users obtain the data and understand the conditions for using it?</p><ul><li>Attach working resources.</li><li>State an open licence.</li><li>Use secure HTTPS links.</li><li>Provide a maintained contact route.</li></ul></article>
+        <article class="help-card"><span class="letter">I</span><h3>Interoperable</h3><p>Can software and other datasets work with the data without extensive conversion?</p><ul><li>Publish machine-readable open formats such as CSV, JSON, or XML.</li><li>Enable a queryable DataStore or API where suitable.</li><li>Add bilingual resource metadata.</li><li>Use portal subjects or topic categories.</li></ul></article>
+        <article class="help-card"><span class="letter">R</span><h3>Reusable</h3><p>Does the dataset include enough context and evidence for someone to use it responsibly?</p><ul><li>Provide publication and update dates.</li><li>Explain ownership and provenance.</li><li>Attach a data dictionary or methodology.</li><li>Validate resources and provide checksums.</li></ul></article>
+        <article class="help-card help-wide"><h3>Description checks</h3><p>The description is the summary users see before downloading data. The app evaluates English and French descriptions separately.</p><ul><li><strong>Length:</strong> each description should contain 50–5,000 characters.</li><li><strong>Markdown richness:</strong> headings, lists, emphasis, and links can make long descriptions easier to scan. Plain text is valid, but the app recommends Markdown.</li><li><strong>Markdown syntax:</strong> unfinished links, images, code fences, or inline code are flagged as errors.</li></ul></article>
+        <article class="help-card"><h3>Portal schema checks</h3><p>The Open Government Portal defines required fields for each record type. The app loads the live <code>dataset</code> or <code>info</code> schema and reports required fields that are empty.</p><p><strong>What to do:</strong> complete missing required fields first. They are necessary for consistent catalogue records, though completing them does not automatically make a dataset easy to reuse.</p></article>
+        <article class="help-card"><h3>Resource and content checks</h3><p>A resource is an attached file, API, document, or link. Each resource is checked for a reusable format, freshness metadata, validation or checksum evidence, and applicable bilingual, DataStore, and alternate-format practices.</p><p>For DataStore resources, the app samples up to 20 rows and reports the percentage of blank cells. This is a warning signal, not a full data-quality audit.</p></article>
+        <article class="help-card"><h3>Engagement measures</h3><p>User ratings and visits show whether portal users interact with the record. The app reports the average rating, recorded visits, latest-month visits, and latest-month rank when available.</p><p>Low engagement does not mean poor data. A specialized dataset may have a small audience, and missing portal records do not prove zero real-world use.</p></article>
+        <article class="help-card"><h3>Recommendations and priority</h3><p>The action plan combines failed FAIR, schema, and resource checks.</p><ul><li><strong>High:</strong> blocks access, required context, validation, or important reuse.</li><li><strong>Medium:</strong> improves trust, documentation, and practical usability.</li><li><strong>Low:</strong> improves discoverability or presentation.</li></ul><p>Start with high-priority actions that are within your control, then reassess the dataset.</p></article>
+        <article class="help-card help-wide"><h3>Exact check methodology</h3><p>Each check is binary: it passes when the condition below is true. FAIR and resource scores are the percentage of their checks that pass. No semantic judgement, link request, or full-file inspection is performed unless explicitly stated.</p>
+          <h4>Findable checks</h4>
+          <div class="method"><strong>Descriptive bilingual title</strong><span>Passes when both English and French titles contain more than 8 characters.</span></div>
+          <div class="method"><strong>Bilingual keywords</strong><span>Passes when English and French each contain at least one keyword and both language lists contain the same number of keywords.</span></div>
+          <div class="method"><strong>Description length</strong><span>Passes when both English and French descriptions contain between 50 and 5,000 characters, inclusive.</span></div>
+          <div class="method"><strong>Descriptions use Markdown</strong><span>Passes when both descriptions contain a recognized Markdown marker: heading, list, numbered list, blockquote, code fence, emphasis, link, image, or inline code.</span></div>
+          <div class="method"><strong>Valid Markdown syntax</strong><span>Passes when neither description has an unmatched triple-backtick code fence, unmatched single-backtick inline code span, or an unclosed Markdown link/image pattern.</span></div>
+          <div class="method"><strong>Persistent catalogue identifier</strong><span>Passes when both package <code>id</code> and <code>name</code> are populated.</span></div>
+          <h4>Accessible checks</h4>
+          <div class="method"><strong>Accessible resources</strong><span>Passes when the package contains at least one resource.</span></div>
+          <div class="method"><strong>Clear licence</strong><span>Passes when either <code>license_id</code> or <code>license_url</code> is populated.</span></div>
+          <div class="method"><strong>Working resource URLs</strong><span>Passes when there is at least one resource and every resource URL begins with <code>https://</code>. The app does not make a request to confirm HTTP status.</span></div>
+          <div class="method"><strong>Contact route</strong><span>Passes when <code>maintainer_email</code>, <code>maintainer_contact_form</code>, or <code>contact_information</code> is populated.</span></div>
+          <h4>Interoperable checks</h4>
+          <div class="method"><strong>Machine-readable open format</strong><span>Passes when at least one resource declares CSV, JSON, JSONL, XML, GEOJSON, JSON-LD, RDF, TXT, TSV, KML, WMS, WFS, or API as its format. JSONL is treated at the same openness level as JSON.</span></div>
+          <div class="method"><strong>Queryable access</strong><span>Passes when any resource has <code>datastore_active=true</code>, or the package collection is API.</span></div>
+          <div class="method"><strong>Bilingual resource metadata</strong><span>Passes when there is at least one resource and every resource language list includes both <code>en</code> and <code>fr</code>.</span></div>
+          <div class="method"><strong>Subjects and classification</strong><span>Passes when either <code>subject</code> or <code>topic_category</code> contains at least one entry.</span></div>
+          <h4>Reusable checks</h4>
+          <div class="method"><strong>Publication and update dates</strong><span>Passes when both <code>date_published</code> and <code>metadata_modified</code> are populated.</span></div>
+          <div class="method"><strong>Ownership and provenance</strong><span>Passes when an organization exists and at least one of <code>author</code>, <code>creator</code>, or <code>maintainer_email</code> is populated.</span></div>
+          <div class="method"><strong>Documentation or data dictionary</strong><span>Passes when any resource has resource type <code>documentation</code>, <code>data_dictionary</code>, or <code>guide</code>; or when at least one DataStore resource has at least one field with bilingual interface labels or bilingual column descriptions.</span></div>
+          <div class="method"><strong>Documented reusable resources</strong><span>Documentation, data-dictionary, and guide resources are excluded. Passes when at least one remaining resource exists and every remaining resource has a name, last-modified date, and format.</span></div>
+          <div class="method"><strong>Integrity or validation evidence</strong><span>Passes when at least one non-documentation resource has a hash or <code>validation_status=success</code>.</span></div>
+          <h4>Schema and resource-content checks</h4>
+          <div class="method"><strong>Schema completion</strong><span>The app loads the live schema matching package type (<code>dataset</code> or <code>info</code>). A required field passes when it is not null, empty text, an empty array, or an empty object. Schema score is completed required fields divided by all required fields.</span></div>
+          <div class="method"><strong>Recommended schema fields</strong><span>The app additionally audits <code>time_period_coverage_start</code>, <code>time_period_coverage_end</code>, and <code>program_page_url</code>. Missing values create recommendations but do not reduce the required-field schema score.</span></div>
+          <div class="method"><strong>Resource format</strong><span>Each resource passes when its declared format is one of the machine-readable open formats listed above. A single consolidated XLSX dataset resource also passes when an open-format dataset resource exists in the same package.</span></div>
+          <div class="method"><strong>Resource freshness</strong><span>Each resource passes when <code>last_modified</code> is populated.</span></div>
+          <div class="method"><strong>Resource integrity</strong><span>Each resource passes when it has a hash or <code>validation_status=success</code>.</span></div>
+          <div class="method"><strong>Bilingual dataset resource</strong><span>Applied only when <code>resource_type=dataset</code>. Passes when the resource language list includes both <code>en</code> and <code>fr</code>. A single bilingual table should use side-by-side English and French columns for text while sharing language-neutral values such as identifiers, measurements, and suitably formatted dates.</span></div>
+          <div class="method"><strong>Consolidated XLSX alternate format</strong><span>Applied only to XLSX dataset resources. Passes when the package also has an open-format dataset resource and contains exactly one XLSX dataset resource. XLSX workbooks can contain multiple tabs, so XLSX is treated as an alternate format that can consolidate multiple tables at a persistent resource ID.</span></div>
+          <div class="method"><strong>CSV enabled in DataStore</strong><span>Applied only to CSV dataset resources. Passes when <code>datastore_active=true</code>. DataStore enables browser views, API queries, searching, sorting, and filtering.</span></div>
+          <div class="method"><strong>Some bilingual column names for the interface</strong><span>Applied to DataStore-enabled resources when <code>datastore_info</code> is available. Passes when at least one field has both <code>info.label_en</code> and <code>info.label_fr</code>.</span></div>
+          <div class="method"><strong>All bilingual column names for the interface</strong><span>Passes when every DataStore field has both <code>info.label_en</code> and <code>info.label_fr</code>.</span></div>
+          <div class="method"><strong>Some bilingual column descriptions</strong><span>Passes when at least one DataStore field has both <code>info.notes_en</code> and <code>info.notes_fr</code>.</span></div>
+          <div class="method"><strong>All bilingual column descriptions</strong><span>Passes when every DataStore field has both <code>info.notes_en</code> and <code>info.notes_fr</code>.</span></div>
+          <div class="method"><strong>Correct DataStore data types</strong><span>Passes when at least one DataStore field has a configured type other than <code>text</code>. This is a signal that structured dates, numbers, or other values can support correct searching, sorting, and filtering; it does not validate every field type.</span></div>
+          <div class="method"><strong>Displaying other data</strong><span>Applied when an uploaded resource can use a portal display view. XML, JSON, JSONL, NDJSON, TXT, YAML, Markdown, and other declared plain-text resources expect <code>text_view</code>; PNG, JPEG, JPG, and GIF expect <code>image_view</code>; API resources expect an OpenAPI view; and PBIX expects <code>powerbiview</code>. Passes when <code>resource_view_list</code> returns the expected view type.</span></div>
+          <h4>Scores, sampling, and engagement</h4>
+          <div class="method"><strong>Overall quality score</strong><span>Rounded result of FAIR score × 55% + schema score × 20% + resource-content score × 25%.</span></div>
+          <div class="method"><strong>DataStore statistics</strong><span>Rows use <code>datastore_info.meta.count</code>, columns count the returned <code>datastore_info.fields</code>, and bytes use <code>datastore_info.meta.size</code>.</span></div>
+          <div class="method"><strong>On time, Over time</strong><span>Compares today with <code>metadata_modified</code> using the stated maintenance frequency. ISO durations are converted to their stated day, week, month, or year interval. A record is overdue after one full interval. <code>as_needed</code>, <code>irregular</code>, <code>not_planned</code>, and <code>unknown</code> return N/A because no scheduled maintenance commitment was communicated.</span></div>
+          <div class="method"><strong>Blank-cell sample</strong><span>For up to 5 DataStore-active resources, the first 20 records are sampled. Blank rate is null or empty-string cells divided by all sampled cells, excluding the DataStore <code>_id</code> column. It does not affect the score.</span></div>
+          <div class="method"><strong>User rating</strong><span>Average of all valid recorded ratings from 1 through 5 for the package UUID, up to the 500 records requested by the app. It does not affect the score.</span></div>
+          <div class="method"><strong>Visits and rank</strong><span>Total visits sum all returned monthly visit records for the package, up to 500 records. Latest-month rank compares the package against the first 1,000 records sorted by visits for the latest available portal month. It does not affect the score.</span></div>
+        </article>
+        <article class="help-card help-wide"><h3>Quick glossary</h3><div class="term"><strong>Metadata</strong><span>Information that describes data, such as its title, publisher, dates, licence, and subject.</span></div><div class="term"><strong>Machine-readable</strong><span>A format software can process reliably, such as CSV or JSON, rather than a visual-only document.</span></div><div class="term"><strong>Data dictionary</strong><span>Documentation explaining each column or field, its meaning, format, units, and allowed values.</span></div><div class="term"><strong>Provenance</strong><span>Information about where data came from, how it was created, and who maintains it.</span></div><div class="term"><strong>Checksum</strong><span>A short computed value used to detect whether a file has changed or become corrupted.</span></div><div class="term"><strong>DataStore</strong><span>The portal’s queryable copy of a tabular resource, which enables previews and API access.</span></div></article>
+      </div>
+    </section>
+    <div class="footer-note">Assessment is advisory and generated in your browser from live Open Government Portal APIs.</div>
+  </main>
+<script>
+(() => {
+  "use strict";
+  const API="https://open.canada.ca/data/api/action/";
+  const API3="https://open.canada.ca/data/en/api/3/action/";
+  const RATING_ID="8353523a-8e4e-4cd0-a91e-b42abe2e6ee5";
+  const VISITS_ID="c14ba36b-0af5-4c59-a5fd-26ca6a1ef6db";
+  const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const text=v=>typeof v==="object"&&v!==null?(v.en||v.fr||Object.values(v)[0]||""):v;
+  const arr=v=>Array.isArray(v)?v:(v?[v]:[]);
+  const yes=v=>v!==undefined&&v!==null&&v!==""&&(!Array.isArray(v)||v.length>0)&&(typeof v!=="object"||Array.isArray(v)||Object.keys(v).length>0);
+  const fmtDate=v=>v?new Intl.DateTimeFormat("en-CA",{year:"numeric",month:"short",day:"numeric"}).format(new Date(v.replace(" ","T")+"Z")):"Not provided";
+  const num=v=>new Intl.NumberFormat("en-CA").format(Number(v)||0);
+  const bytes=v=>{const n=Number(v)||0;if(n<1024)return num(n)+" B";const units=["KB","MB","GB","TB"];let x=n,i=-1;do{x/=1024;i++}while(x>=1024&&i<units.length-1);return `${x.toFixed(x>=10?1:2)} ${units[i]}`};
+  const uid=()=>Math.random().toString(36).slice(2);
+  const state={schema:null,pkg:null,analysis:null,ratings:null,usage:null,samples:{},datastoreInfos:{},resourceViews:{},browseStart:0,browseTotal:null};
+
+  function descriptionAudit(value){
+    const raw=String(value||""), errors=[];
+    const fences=(raw.match(/```/g)||[]).length, withoutFences=raw.replace(/```[\s\S]*?```/g,"");
+    const ticks=(withoutFences.match(/(?<!`)`(?!`)/g)||[]).length;
+    if(fences%2)errors.push("Unclosed fenced code block");
+    if(ticks%2)errors.push("Unclosed inline code span");
+    if(/!?\[[^\]\n]*\]\([^)\n]*$/m.test(raw))errors.push("Unclosed Markdown link or image");
+    const hasMarkdown=/(^|\n)\s{0,3}(#{1,6}\s|[-*+]\s|\d+\.\s|>\s|```)|(\*\*|__|~~)[^*\n]+(\*\*|__|~~)|!?\[[^\]]+\]\([^)]+\)|`[^`\n]+`/m.test(raw);
+    return {length:raw.length,inRange:raw.length>=50&&raw.length<=5000,format:errors.length?"Markdown syntax error":hasMarkdown?"Markdown":"Plain text",valid:errors.length===0,errors};
+  }
+  function safeUrl(value,image=false){
+    const url=String(value||"").trim();
+    return (image?/^https?:\/\//i:/^(https?:\/\/|mailto:)/i).test(url)?esc(url):"";
+  }
+  function inlineMarkdown(value){
+    let s=esc(value);
+    s=s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+["'][^"']*["'])?\)/g,(m,alt,url)=>safeUrl(url,true)?`<img src="${safeUrl(url,true)}" alt="${alt}" loading="lazy">`:`<span class="tag bad">Invalid image URL: ${esc(url)}</span>`);
+    s=s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+["'][^"']*["'])?\)/g,(m,label,url)=>safeUrl(url)?`<a href="${safeUrl(url)}" target="_blank" rel="noopener noreferrer">${label}</a>`:label);
+    return s.replace(/`([^`\n]+)`/g,"<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>").replace(/__([^_\n]+)__/g,"<strong>$1</strong>").replace(/~~([^~\n]+)~~/g,"<del>$1</del>").replace(/(^|[^\w])\*([^*\n]+)\*/g,"$1<em>$2</em>");
+  }
+  function renderMarkdown(value){
+    const lines=String(value||"").replace(/\r/g,"").split("\n"), out=[];let list="",paragraph=[],code=false,codeLines=[];
+    const flushP=()=>{if(paragraph.length){out.push(`<p>${inlineMarkdown(paragraph.join(" "))}</p>`);paragraph=[]}};
+    const flushList=()=>{if(list){out.push(`</${list}>`);list=""}};
+    for(const line of lines){
+      if(/^```/.test(line.trim())){flushP();flushList();if(code){out.push(`<pre><code>${esc(codeLines.join("\n"))}</code></pre>`);codeLines=[]}code=!code;continue}
+      if(code){codeLines.push(line);continue}
+      let m;
+      if(!line.trim()){flushP();flushList()}
+      else if((m=line.match(/^(#{1,3})\s+(.+)$/))){flushP();flushList();const n=m[1].length;out.push(`<h${n}>${inlineMarkdown(m[2])}</h${n}>`)}
+      else if((m=line.match(/^>\s?(.*)$/))){flushP();flushList();out.push(`<blockquote>${inlineMarkdown(m[1])}</blockquote>`)}
+      else if((m=line.match(/^\s*[-*+]\s+(.+)$/))){flushP();if(list!=="ul"){flushList();out.push("<ul>");list="ul"}out.push(`<li>${inlineMarkdown(m[1])}</li>`)}
+      else if((m=line.match(/^\s*\d+\.\s+(.+)$/))){flushP();if(list!=="ol"){flushList();out.push("<ol>");list="ol"}out.push(`<li>${inlineMarkdown(m[1])}</li>`)}
+      else{flushList();paragraph.push(line.trim())}
+    }
+    flushP();flushList();if(codeLines.length)out.push(`<pre><code>${esc(codeLines.join("\n"))}</code></pre>`);
+    return out.join("")||"<p>No description provided.</p>";
+  }
+  function expectedResourceView(r){
+    const format=String(r.format||"").toUpperCase(), uploaded=r.url_type==="upload";
+    if(r.resource_type==="api"||format==="API")return {label:"OpenAPI View",types:["openapi_view","openapi","swagger_view"]};
+    if(format==="PBIX")return {label:"Power BI View",types:["powerbiview","powerbi_view"]};
+    if(!uploaded)return null;
+    if(["XML","JSON","JSONL","NDJSON","TXT","TEXT","PLAIN TEXT","YAML","YML","MD","MARKDOWN"].includes(format))return {label:"Text View",types:["text_view"]};
+    if(["PNG","JPEG","JPG","GIF"].includes(format))return {label:"Image View",types:["image_view"]};
+    return null;
+  }
+
+  function jsonp(base,params={},timeout=18000){
+    return new Promise((resolve,reject)=>{
+      const cb="__odql_"+uid(), script=document.createElement("script"), timer=setTimeout(done,timeout,new Error("The portal API did not respond in time."));
+      function done(err,data){clearTimeout(timer);delete window[cb];script.remove();err?reject(err):resolve(data)}
+      window[cb]=data=>data&&data.success===false?done(new Error(data.error?.message||"Portal API request failed.")):done(null,data);
+      params.callback=cb; script.src=base+"?"+new URLSearchParams(params); script.onerror=()=>done(new Error("Could not connect to the Open Government Portal API.")); document.head.appendChild(script);
+    });
+  }
+  async function action(name,params,api=API){const d=await jsonp(api+name,params);return d.result}
+  function notify(el,msg){el.innerHTML=`<div class="error">${esc(msg)}</div>`}
+
+  async function loadRecent(append=false){
+    const grid=$("#datasetGrid"),button=$("#loadMoreBtn");
+    if(!append){state.browseStart=0;grid.innerHTML='<div class="loading"><div class="spinner"></div>Loading catalogue…</div>'}
+    $("#browseError").innerHTML="";button.disabled=true;button.textContent=append?"Loading 12 more…":"Loading…";
+    try{
+      const r=await action("package_search",{rows:12,start:state.browseStart,sort:"metadata_modified desc",fq:"-collection:fgp"});
+      const records=r.results.filter(x=>x.collection!=="fgp");
+      if(append)grid.insertAdjacentHTML("beforeend",records.map(datasetCard).join(""));else grid.innerHTML=records.map(datasetCard).join("");
+      state.browseStart+=records.length;state.browseTotal=r.count;
+      grid.querySelectorAll(".dataset").forEach(b=>b.onclick=()=>evaluate(b.dataset.id));
+      button.classList.toggle("hidden",state.browseStart>=state.browseTotal||records.length===0);
+    }catch(e){if(!append)grid.innerHTML="";notify($("#browseError"),e.message)}
+    finally{button.disabled=false;button.textContent="Load 12 more records"}
+  }
+  function datasetCard(d){
+    return `<button class="dataset" data-id="${esc(d.id)}"><span class="pill"><i class="dot"></i>${esc(d.type||"dataset")} · ${esc(d.collection||"uncategorized")}</span><h3>${esc(text(d.title_translated)||d.title)}</h3><p>${esc(text(d.notes_translated)||d.notes||"No description supplied.")}</p><footer><span>${esc(d.organization?.title||"Government of Canada")}</span><span>Modified ${fmtDate(d.metadata_modified)}</span></footer></button>`;
+  }
+  async function evaluate(rawId){
+    const id=rawId.trim();
+    if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)){notify($("#browseError"),"Enter a valid package_id UUID.");return}
+    $("#browse").classList.add("hidden");$("#detail").classList.remove("hidden");$("#detailLoading").classList.remove("hidden");$("#detailContent").classList.add("hidden");$("#detailContent").innerHTML="";
+    history.replaceState(null,"","#dataset="+id);scrollTo({top:0,behavior:"smooth"});
+    try{
+      const pkg=await action("package_show",{id});
+      if(pkg.collection==="fgp") throw new Error("Open Maps records (collection=fgp) are outside the scope of this evaluator.");
+      state.pkg=pkg;
+      const schemaType=pkg.type==="info"?"info":"dataset";
+      const [schema,ratings,ownUsage,latestUsage,datastorePairs,viewPairs]=await Promise.all([
+        action("scheming_dataset_schema_show",{type:schemaType,expanded:true}),
+        action("datastore_search",{resource_id:RATING_ID,filters:JSON.stringify({uuid:id}),limit:500},API3).catch(()=>null),
+        action("datastore_search",{resource_id:VISITS_ID,filters:JSON.stringify({id}),limit:500,sort:"year_annee desc, month_mois desc"},API3).catch(()=>null),
+        action("datastore_search",{resource_id:VISITS_ID,limit:1,sort:"year_annee desc, month_mois desc, visits_visites desc"},API3).catch(()=>null),
+        Promise.all(arr(pkg.resources).filter(r=>r.datastore_active).map(async r=>[r.id,await action("datastore_info",{id:r.id}).catch(()=>null)])),
+        Promise.all(arr(pkg.resources).filter(expectedResourceView).map(async r=>[r.id,await action("resource_view_list",{id:r.id}).catch(()=>[])]))
+      ]);
+      state.schema=schema;state.ratings=ratings;state.usage={own:ownUsage,latest:latestUsage};state.datastoreInfos=Object.fromEntries(datastorePairs.filter(x=>x[1]));state.resourceViews=Object.fromEntries(viewPairs);
+      state.analysis=analyze(pkg,schema);
+      renderDetail();
+      loadEngagementComparisons();
+      loadSamples();
+    }catch(e){$("#detailLoading").innerHTML=`<div class="error">${esc(e.message)}</div>`}
+  }
+  function check(name,label,pass,rec,priority="medium",why=""){
+    return {name,label,pass:!!pass,rec,priority,why};
+  }
+  function datastoreDictionaryExists(infos){
+    return Object.values(infos).some(info=>arr(info?.fields).some(f=>(yes(f.info?.label_en)&&yes(f.info?.label_fr))||(yes(f.info?.notes_en)&&yes(f.info?.notes_fr))));
+  }
+  function timelinessAudit(p){
+    const frequency=String(p.frequency||"unknown"), na=["as_needed","irregular","not_planned","unknown"];
+    if(na.includes(frequency))return {status:"na",label:"N/A",detail:"N/A - no specified maintenance commitment has been communicated to users.",frequency};
+    const legacy={daily:1,weekly:7,fortnightly:14,monthly:30.4375,semimonthly:60.875,quarterly:91.3125,biannually:182.625,annually:365.25,continual:1};
+    const match=frequency.match(/^P([\d.]+)([DWMY])$/), units={D:1,W:7,M:30.4375,Y:365.25};
+    const interval=legacy[frequency]||(match?Number(match[1])*units[match[2]]:null);
+    if(!interval||!p.metadata_modified)return {status:"na",label:"N/A",detail:"N/A - no specified maintenance commitment has been communicated to users.",frequency};
+    const elapsed=Math.max(0,(Date.now()-new Date(p.metadata_modified.replace(" ","T")+"Z").getTime())/86400000), overdue=elapsed>interval, daysLate=overdue?Math.max(1,Math.ceil(elapsed-interval)):0;
+    return overdue
+      ?{status:"late",label:`${num(daysLate)} days late`,detail:`The record was last modified ${num(Math.floor(elapsed))} days ago, exceeding its ${frequency} maintenance interval by ${num(daysLate)} days.`,frequency,daysLate}
+      :{status:"on-time",label:"On time",detail:`The record was last modified ${num(Math.floor(elapsed))} days ago and remains within its ${frequency} maintenance interval.`,frequency,daysLate:0};
+  }
+  function analyze(p,schema){
+    const resources=arr(p.resources), titles=p.title_translated||{}, notes=p.notes_translated||{}, keys=p.keywords||{};
+    const descriptions=[notes.en||p.notes||"",notes.fr||""], descriptionAudits=descriptions.map(descriptionAudit), selectedDescription=descriptionAudit(text(notes)||p.notes||"");
+    const open=["CSV","JSON","JSONL","XML","GEOJSON","JSON-LD","RDF","TXT","TSV","KML","WMS","WFS","API"];
+    const machine=resources.filter(r=>open.includes(String(r.format).toUpperCase()));
+    const dataResources=resources.filter(r=>!["documentation","data_dictionary","guide"].includes(r.resource_type));
+    const checks={
+      F:[
+        check("f-title","Descriptive bilingual title",String(titles.en||p.title||"").length>8&&String(titles.fr||"").length>8,"Provide clear, specific titles in both English and French.","high"),
+        check("f-keywords","Balanced bilingual keywords",arr(keys.en).length>=1&&arr(keys.en).length===arr(keys.fr).length,"Provide at least one keyword in each official language and keep the English and French keyword counts equal.","medium"),
+        check("f-description","Bilingual descriptions are 50–5,000 characters",descriptionAudits.every(x=>x.inRange),"Keep each official-language description between 50 and 5,000 characters.","high"),
+        check("f-description-md","Descriptions use Markdown",descriptionAudits.every(x=>x.format==="Markdown"),"Use Markdown headings, lists, emphasis, or links to make plain-text descriptions richer and easier to scan.","low"),
+        check("f-description-valid","Description Markdown syntax is valid",descriptionAudits.every(x=>x.valid),"Correct malformed Markdown syntax in the dataset descriptions.","high"),
+        check("f-id","Persistent catalogue identifier",yes(p.id)&&yes(p.name),"Keep the stable package UUID when publishing updates.","low")
+      ],
+      A:[
+        check("a-resources","Accessible resources",resources.length>0,"Attach at least one downloadable or API resource.","high"),
+        check("a-license","Clear licence",yes(p.license_id)||yes(p.license_url),"State a clear open licence and link to its terms.","high"),
+        check("a-links","Working resource URLs",resources.length>0&&resources.every(r=>/^https:\/\//i.test(r.url||"")),"Use HTTPS URLs for every resource and verify them regularly.","medium"),
+        check("a-contact","Contact route",yes(p.maintainer_email)||yes(p.maintainer_contact_form)||yes(p.contact_information),"Provide a maintained contact route for access questions.","medium")
+      ],
+      I:[
+        check("i-format","Machine-readable open format",machine.length>0,"Publish at least one CSV, JSON, XML, GeoJSON, RDF, TSV, or API resource.","high"),
+        check("i-api","Queryable access",resources.some(r=>r.datastore_active)||String(p.collection).toLowerCase()==="api","Enable the DataStore/API for tabular resources.","medium"),
+        check("i-bilingual","Bilingual resource metadata",resources.length>0&&resources.every(r=>arr(r.language).includes("en")&&arr(r.language).includes("fr")),"Supply bilingual names, descriptions, and language tags for resources.","medium"),
+        check("i-vocab","Subjects and classification",arr(p.subject).length>0||arr(p.topic_category).length>0,"Classify the dataset with portal subjects or topic categories.","low")
+      ],
+      R:[
+        check("r-dates","Publication and update dates",yes(p.date_published)&&yes(p.metadata_modified),"Provide publication and last-updated dates.","medium"),
+        check("r-provenance","Ownership and provenance",yes(p.organization)&&yes(p.author||p.creator||p.maintainer_email),"Describe who created, owns, and maintains the data.","medium"),
+        check("r-doc","Documentation or data dictionary",resources.some(r=>["documentation","data_dictionary","guide"].includes(r.resource_type))||datastoreDictionaryExists(state.datastoreInfos),"Attach a data dictionary or methodology document.","high"),
+        check("r-resource","Documented reusable resources",dataResources.length>0&&dataResources.every(r=>yes(r.name)&&yes(r.last_modified)&&yes(r.format)),"For every data resource, provide a name, format, and last-modified date.","medium"),
+        check("r-integrity","Integrity or validation evidence",dataResources.length>0&&dataResources.some(r=>yes(r.hash)||r.validation_status==="success"),"Add checksums and ensure resource validation succeeds.","medium")
+      ]
+    };
+    const all=Object.values(checks).flat(), fairScore=Math.round(all.filter(x=>x.pass).length/all.length*100);
+    const schemaFields=arr(schema.dataset_fields), required=schemaFields.filter(f=>f.required), missing=required.filter(f=>!yes(p[f.field_name]));
+    const recommendedNames=["time_period_coverage_start","time_period_coverage_end","program_page_url"];
+    const recommended=recommendedNames.map(name=>schemaFields.find(f=>f.field_name===name)||{field_name:name,label:name.replaceAll("_"," ")}), missingRecommended=recommended.filter(f=>!yes(p[f.field_name]));
+    const schemaScore=required.length?Math.round((required.length-missing.length)/required.length*100):100;
+    const contentChecks=resources.flatMap(r=>resourceChecks(r,resources,state.datastoreInfos[r.id],state.resourceViews[r.id])), contentScore=contentChecks.length?Math.round(contentChecks.filter(x=>x.pass).length/contentChecks.length*100):0;
+    const total=Math.round(fairScore*.55+schemaScore*.2+contentScore*.25);
+    const recs=all.filter(x=>!x.pass).map(x=>({title:x.rec,detail:`Improves FAIR ${x.name[0].toUpperCase()} score: ${x.label}.`,priority:x.priority,source:"FAIR"}));
+    missing.forEach(f=>recs.push({title:`Complete required field: ${text(f.label)||f.field_name}`,detail:text(f.help_text)||`The ${f.field_name} field is required by the portal's ${schema.dataset_type} schema.`,priority:"high",source:"Schema"}));
+    missingRecommended.forEach(f=>recs.push({title:`Complete recommended field: ${text(f.label)||f.field_name}`,detail:text(f.help_text)||`Populate ${f.field_name} to improve context and reuse.`,priority:"medium",source:"Schema"}));
+    contentChecks.filter(x=>!x.pass).forEach(x=>recs.push({title:x.rec,detail:x.why||x.label,priority:x.priority,source:"Content"}));
+    const timeliness=timelinessAudit(p);
+    if(timeliness.status==="late")recs.push({title:`Update the dataset: ${timeliness.label}`,detail:timeliness.detail,priority:"high",source:"Timeliness"});
+    return {checks,fairScore,schemaScore,contentScore,total,required,missing,recommended,missingRecommended,recs,resources,contentChecks,descriptionAudits,selectedDescription,timeliness};
+  }
+  function resourceChecks(r,resources,datastoreInfo,resourceViews=[]){
+    const format=String(r.format).toUpperCase(), isDataset=r.resource_type==="dataset", bilingual=arr(r.language).includes("en")&&arr(r.language).includes("fr");
+    const openAlternate=resources.some(x=>x.id!==r.id&&x.resource_type==="dataset"&&["CSV","JSON","JSONL","XML","GEOJSON","JSON-LD","RDF","TXT","TSV"].includes(String(x.format).toUpperCase()));
+    const xlsxCount=resources.filter(x=>x.resource_type==="dataset"&&String(x.format).toUpperCase()==="XLSX").length;
+    const consolidatedXlsx=isDataset&&format==="XLSX"&&openAlternate&&xlsxCount===1;
+    const open=["CSV","JSON","JSONL","XML","GEOJSON","JSON-LD","RDF","TXT","TSV","KML","WMS","WFS","API"].includes(format)||consolidatedXlsx;
+    const checks=[
+      check(consolidatedXlsx?"c-format-alt":"c-format",`${r.name||"Resource"} uses a reusable format`,open,`Publish “${r.name||"resource"}” in an open machine-readable format.`,"high",`Current format: ${r.format||"not declared"}.`),
+      check("c-date",`${r.name||"Resource"} has freshness metadata`,yes(r.last_modified),`Add a last-modified date for “${r.name||"resource"}”.`,"medium","Freshness helps users judge fitness for use."),
+      check("c-integrity",`${r.name||"Resource"} has validation/integrity evidence`,r.validation_status==="success"||yes(r.hash),`Validate “${r.name||"resource"}” and publish a checksum.`,"medium","Validation and checksums help users detect broken or changed files.")
+    ];
+    if(isDataset)checks.push(check("c-language",`${r.name||"Resource"} is bilingual`,bilingual,`Publish “${r.name||"resource"}” as a bilingual dataset.`,"high","Use side-by-side repeated English and French columns for textual content. Non-text content can serve both languages; format dates, measurements, choice lists, and identifiers for both English and French audiences."));
+    if(isDataset&&format==="XLSX"){
+      checks.push(check("c-xlsx-alt",`${r.name||"Resource"} is a consolidated alternate format`,consolidatedXlsx,`Consolidate and maintain “${r.name||"resource"}” as an XLSX alternate format.`,"medium","XLSX is suitable only as an alternate to an open format such as CSV. Having many additional XLSX files published as alternate resources clutters the catalogue entry. XLSX workbooks can contain multiple tabs; package tabular data into one workbook and keep it updated at a persistent resource_id."));
+    }
+    if(isDataset&&format==="CSV")checks.push(check("c-csv-store",`${r.name||"Resource"} is enabled in DataStore`,r.datastore_active,`Add “${r.name||"resource"}” to the CKAN DataStore.`,"high","DataStore enables browser previews and views, query APIs, searching, sorting, filtering, and easier reuse without downloading the full CSV."));
+    if(r.datastore_active&&datastoreInfo){
+      const fields=arr(datastoreInfo.fields), anyLabels=fields.some(f=>yes(f.info?.label_en)&&yes(f.info?.label_fr)), allLabels=fields.length>0&&fields.every(f=>yes(f.info?.label_en)&&yes(f.info?.label_fr));
+      const anyNotes=fields.some(f=>yes(f.info?.notes_en)&&yes(f.info?.notes_fr)), allNotes=fields.length>0&&fields.every(f=>yes(f.info?.notes_en)&&yes(f.info?.notes_fr));
+      const typed=fields.some(f=>String(f.type).toLowerCase()!=="text");
+      checks.push(
+        check("c-labels-any",`${r.name||"Resource"} has some bilingual column names for the interface`,anyLabels,`Add bilingual interface labels to columns in “${r.name||"resource"}”.`,"medium","Configure label_en and label_fr in the DataStore field metadata."),
+        check("c-labels-all",`${r.name||"Resource"} has bilingual column names for every interface field`,allLabels,`Complete bilingual interface labels for every column in “${r.name||"resource"}”.`,"medium","Every DataStore field should have both label_en and label_fr."),
+        check("c-notes-any",`${r.name||"Resource"} has some bilingual column descriptions`,anyNotes,`Add bilingual column descriptions to “${r.name||"resource"}”.`,"medium","Configure notes_en and notes_fr in the DataStore field metadata."),
+        check("c-notes-all",`${r.name||"Resource"} has bilingual descriptions for every column`,allNotes,`Complete bilingual descriptions for every column in “${r.name||"resource"}”.`,"medium","Every DataStore field should have both notes_en and notes_fr."),
+        check("c-types",`${r.name||"Resource"} has correct data types configured for searching, sorting, and filtering`,typed,`Configure appropriate non-text DataStore field types in “${r.name||"resource"}”.`,"high","Set dates, numbers, measurements, and other structured values to suitable types so portal searching, sorting, and filtering behave correctly.")
+      );
+    }
+    const expectedView=expectedResourceView(r);
+    if(expectedView){
+      const observed=arr(resourceViews).map(v=>v.view_type), hasView=observed.some(v=>expectedView.types.includes(v));
+      checks.push(check("c-display-view",`Displaying Other Data: ${r.name||"Resource"} uses ${expectedView.label}`,hasView,`Add ${expectedView.label} to “${r.name||"resource"}”.`,"medium",`Expected ${expectedView.types.join(" or ")}; observed views: ${observed.join(", ")||"none"}.`));
+    }
+    return checks;
+  }
+  function fairPart(key,name){
+    const list=state.analysis.checks[key],score=Math.round(list.filter(x=>x.pass).length/list.length*100);
+    return `<div class="fair"><div class="fair-head"><div style="display:flex;gap:10px;align-items:center"><span class="letter">${key}</span><div><h3>${name}</h3><div class="bar" style="width:120px;margin-top:7px"><i style="width:${score}%"></i></div></div></div><strong>${score}</strong></div><ul class="checklist">${list.map(checkRow).join("")}</ul></div>`;
+  }
+  function checkRow(x){return `<li><span class="status ${x.pass?"pass":"fail"}">${x.pass?"✓":"!"}</span><span>${esc(x.label)}</span></li>`}
+  function renderDetail(){
+    const p=state.pkg,a=state.analysis,rating=ratingStats(),usage=usageStats();
+    $("#detailLoading").classList.add("hidden");$("#detailContent").classList.remove("hidden");
+    $("#detailContent").innerHTML=`
+      <div class="detail-top"><div class="detail-title"><div><span class="pill">${esc(p.type||"dataset")} · ${esc(p.collection)}</span><h2>${esc(text(p.title_translated)||p.title)}</h2><div class="markdown">${renderMarkdown(text(p.notes_translated)||p.notes||"")}</div><div class="description-audit">${descriptionBadges(a.selectedDescription)}</div><div class="source-links"><a href="https://open.canada.ca/data/en/dataset/${encodeURIComponent(p.id)}" target="_blank" rel="noopener noreferrer">View published dataset ↗</a><a href="${API}package_show?id=${encodeURIComponent(p.id)}" target="_blank" rel="noopener noreferrer">View package_show JSON ↗</a></div></div><div class="score-ring" style="--score:${a.total}"><div><strong>${a.total}</strong><small>quality score</small></div></div></div></div>
+      <nav class="tabs">${["Overview","FAIR metadata","Schema","Resources & content","Engagement","Action plan"].map((x,i)=>`<button class="tab ${i===0?"active":""}" data-tab="${i}">${x}</button>`).join("")}</nav>
+      <section class="panel active" data-panel="0">${overviewPanel(p,a,rating,usage)}</section>
+      <section class="panel" data-panel="1"><div class="fair-grid">${fairPart("F","Findable")}${fairPart("A","Accessible")}${fairPart("I","Interoperable")}${fairPart("R","Reusable")}</div><p class="note">FAIR assessment is an advisory implementation of the FAIR principles tailored to open.canada.ca catalogue fields.</p></section>
+      <section class="panel" data-panel="2">${schemaPanel(a)}</section>
+      <section class="panel" data-panel="3">${resourcesPanel(a)}</section>
+      <section class="panel" data-panel="4" id="engagementPanel">${engagementPanel(rating,usage)}</section>
+      <section class="panel" data-panel="5">${actionsPanel(a)}</section>`;
+    document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>switchTab(t.dataset.tab));
+  }
+  function overviewPanel(p,a,rating,usage){
+    return `<div class="metric-grid">
+      ${metric("Overall quality",a.total+"/100",a.total>=80?"Strong foundation":a.total>=60?"Several improvements available":"Material improvements needed")}
+      ${metric("FAIR metadata",a.fairScore+"/100",Object.values(a.checks).flat().filter(x=>!x.pass).length+" checks need attention")}
+      ${metric("Schema completion",a.schemaScore+"%",a.missing.length+" required fields missing")}
+      ${metric("Resources",a.resources.length,a.resources.filter(r=>r.datastore_active).length+" queryable through DataStore")}
+    </div>${timelinessCard(a.timeliness)}<div class="two-col"><div class="box"><h3>Dataset facts</h3>
+      ${fact("Publisher",p.organization?.title)}${fact("Published",fmtDate(p.date_published||p.metadata_created))}${fact("Metadata updated",fmtDate(p.metadata_modified))}${fact("Licence",p.license_title||p.license_id)}${fact("Package ID",p.id)}
+    </div><div class="box"><h3>Priority improvements</h3><div class="recs">${a.recs.slice().sort(prioritize).slice(0,5).map(recCard).join("")||'<div class="empty">No priority recommendations.</div>'}</div></div></div>
+    <div class="box" style="margin-top:14px"><h3>Description quality</h3><p class="note">Evaluated against the <a href="https://schema.org/Dataset" target="_blank" rel="noopener noreferrer">schema.org Dataset</a> guidance: summaries must be 50–5,000 characters and may use Markdown.</p><div class="two-col">${descriptionAuditCard("English",a.descriptionAudits[0])}${descriptionAuditCard("French",a.descriptionAudits[1])}</div></div>`;
+  }
+  function timelinessCard(t){
+    const cls=t.status==="on-time"?"pass":t.status==="late"?"fail":"warn", symbol=t.status==="on-time"?"✓":t.status==="late"?"!":"–";
+    return `<div class="timeliness ${t.status==="na"?"na":""}"><span class="status ${cls}">${symbol}</span><div><h3>On time, Over time · ${esc(t.label)}</h3><p>${esc(t.detail)}</p></div></div>`;
+  }
+  function descriptionBadges(a){
+    return `<span class="tag ${a.format==="Markdown"&&a.valid?"good":a.valid?"":"bad"}">${esc(a.format)}</span><span class="tag ${a.inRange?"good":"bad"}">${num(a.length)} characters</span>`;
+  }
+  function descriptionAuditCard(language,a){
+    const details=[...a.errors];
+    return `<div class="schema-row" style="display:block"><strong>${esc(language)}</strong><div class="description-audit">${descriptionBadges(a)}</div>${details.length?`<p class="note">${esc(details.join("; "))}</p>`:""}</div>`;
+  }
+  function metric(label,value,small){return `<div class="metric"><label>${esc(label)}</label><strong>${esc(value)}</strong><small>${esc(small)}</small></div>`}
+  function fact(k,v){return `<div style="display:grid;grid-template-columns:130px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid #edf2f0"><strong style="font-size:12px">${esc(k)}</strong><span style="font-size:12px;color:var(--muted);overflow-wrap:anywhere">${esc(v||"Not provided")}</span></div>`}
+  function recCard(r){return `<div class="rec ${r.priority}"><strong>${esc(r.title)}</strong><p>${esc(r.detail)}</p></div>`}
+  function schemaPanel(a){
+    const missing=new Set(a.missing.map(x=>x.field_name)), missingRecommended=new Set(a.missingRecommended.map(x=>x.field_name));
+    const fieldRow=(f,isMissing)=>`<div class="schema-row"><div><code>${esc(f.field_name)}</code><br><span>${esc(text(f.label)||f.field_name)}</span></div><span class="pill" style="${isMissing?"background:var(--red2);color:var(--red)":"background:var(--green2);color:var(--green)"}">${isMissing?"Missing":"Complete"}</span></div>`;
+    return `<div class="metric-grid">${metric("Schema type",state.schema.dataset_type,"Selected from package type")}${metric("Required fields",a.required.length,"Portal schema definition")}${metric("Complete",a.required.length-a.missing.length,"Required fields populated")}${metric("Missing",a.missing.length,a.missing.length?"Needs attention":"No required gaps")}</div><div class="two-col"><div><div class="box"><h3>Required field audit</h3>${a.required.map(f=>fieldRow(f,missing.has(f.field_name))).join("")}</div><div class="box" style="margin-top:14px"><h3>Recommended field audit</h3><p class="note">Additional contextual fields checked even when the live schema does not mark them required.</p>${a.recommended.map(f=>fieldRow(f,missingRecommended.has(f.field_name))).join("")}</div></div><div class="box"><h3>Schema recommendations</h3><div class="recs">${a.recs.filter(r=>r.source==="Schema").map(recCard).join("")||'<div class="empty">All checked schema fields are populated.</div>'}</div></div></div>`;
+  }
+  function resourcesPanel(a){
+    return `<div class="metric-grid">${metric("Resources",a.resources.length,"Files, APIs, and documentation")}${metric("Open formats",a.resources.filter(r=>["CSV","JSON","JSONL","XML","GEOJSON","RDF","TXT","TSV","API"].includes(String(r.format).toUpperCase())).length,"Machine-readable resources")}${metric("DataStore active",a.resources.filter(r=>r.datastore_active).length,"Queryable resources")}${metric("Content score",a.contentScore+"/100","Resource-level metadata")}</div><div class="two-col"><div class="box"><h3>Resource evaluation</h3>${a.resources.map(resourceCard).join("")||'<div class="empty">No resources are attached.</div>'}</div><div class="box"><h3>Content recommendations</h3><div class="recs">${a.recs.filter(r=>r.source==="Content").slice(0,12).map(recCard).join("")||'<div class="empty">No resource-level recommendations.</div>'}</div></div></div>`;
+  }
+  function resourceCard(r){
+    const checks=state.analysis.contentChecks.filter(x=>x.label.startsWith(r.name||"Resource")), info=state.datastoreInfos[r.id], fields=arr(info?.fields), meta=info?.meta;
+    const stats=info?`<div class="sample-stats"><span>${num(meta?.count)} rows</span><span>${num(fields.length)} columns</span><span>${num(meta?.size)} bytes (${bytes(meta?.size)})</span></div>`:"";
+    return `<div class="resource"><div class="resource-head"><span class="format">${esc(r.format||"?")}</span><div><h3>${esc(r.name||"Unnamed resource")}</h3><p>${esc(r.resource_type||"Resource")} · ${esc(arr(r.language).join(", ")||"Language not declared")} · Modified ${fmtDate(r.last_modified)}</p></div></div><div class="source-links"><a href="https://open.canada.ca/data/en/dataset/${encodeURIComponent(r.package_id)}/resource/${encodeURIComponent(r.id)}" target="_blank" rel="noopener noreferrer">Live resource page ↗</a><a href="${API}resource_show?id=${encodeURIComponent(r.id)}" target="_blank" rel="noopener noreferrer">resource_show JSON ↗</a></div>${stats}<div class="audit">${checks.map(resourceAuditRow).join("")}</div>${r.datastore_active?`<details class="sample" id="sample-${esc(r.id)}"><summary>Data sample quality · loading…</summary></details>`:""}</div>`;
+  }
+  function resourceAuditRow(x){
+    const evidence=x.pass?(x.name==="c-display-view"?x.why:resourcePassEvidence(x)):x.why||x.rec;
+    return `<div class="audit-row"><span class="audit-result ${x.pass?"pass-text":"fail-text"}">${x.pass?"Pass":"Needs work"}</span><strong>${esc(x.label)}</strong><p>${esc(evidence)}</p></div>`;
+  }
+  function resourcePassEvidence(x){
+    const map={"c-format":"Declared format is recognized as reusable and machine-readable.","c-format-alt":"XLSX is accepted as the single consolidated alternate because an open-format dataset resource also exists.","c-date":"A last-modified date is populated.","c-integrity":"A checksum or successful validation status is present.","c-language":"The language list contains both en and fr.","c-xlsx-alt":"An open-format dataset resource exists and this is the only XLSX dataset resource.","c-csv-store":"DataStore is enabled for this CSV.","c-labels-any":"At least one field has both label_en and label_fr.","c-labels-all":"Every field has both label_en and label_fr.","c-notes-any":"At least one field has both notes_en and notes_fr.","c-notes-all":"Every field has both notes_en and notes_fr.","c-types":"At least one field uses a configured type other than text.","c-display-view":"The expected display view is configured."};
+    return map[x.name]||"The check condition is satisfied.";
+  }
+  function ratingStats(){
+    const rs=state.ratings?.records||[], vals=rs.map(x=>Number(x.rating_eval)).filter(x=>x>=1&&x<=5);
+    return {count:vals.length,avg:vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null};
+  }
+  function usageStats(){
+    const rs=state.usage?.own?.records||[], total=rs.reduce((s,x)=>s+Number(x.visits_visites||0),0), latest=rs[0];
+    return {records:rs,total,latest,rank:null,rankTotal:null};
+  }
+  function engagementPanel(r,u){
+    return `<div class="engagement-hero"><div class="big-stat"><label>User rating</label><strong>${r.avg?r.avg.toFixed(1)+" / 5":"—"}</strong><p>${r.count?num(r.count)+" submitted rating"+(r.count===1?"":"s"):"No ratings recorded for this package"}</p></div><div class="big-stat"><label>Total recorded visits</label><strong>${num(u.total)}</strong><p>${u.records.length?`${u.records.length} monthly records; latest ${u.latest?.year_annee}-${String(u.latest?.month_mois).padStart(2,"0")}`:"No usage record found"}</p></div></div><div class="box" style="margin-top:14px" id="comparisonBox"><h3>Comparative engagement</h3><div class="loading" style="padding:25px"><div class="spinner"></div>Comparing with portal activity…</div></div><p class="note">Ratings and visits are reported from the two public portal DataStore resources. A missing record means no recorded engagement, not necessarily zero real-world use.</p>`;
+  }
+  async function loadEngagementComparisons(){
+    const latest=state.usage?.latest?.records?.[0];if(!latest)return;
+    try{
+      const [top,ratingSample]=await Promise.all([
+        action("datastore_search",{resource_id:VISITS_ID,filters:JSON.stringify({year_annee:latest.year_annee,month_mois:latest.month_mois}),limit:1000,sort:"visits_visites desc"},API3),
+        action("datastore_search",{resource_id:RATING_ID,limit:1000,sort:"date desc"},API3)
+      ]);
+      const u=usageStats(), idx=top.records.findIndex(x=>x.id===state.pkg.id), vals=ratingSample.records.map(x=>Number(x.rating_eval)).filter(x=>x>=1&&x<=5), baseline=vals.reduce((a,b)=>a+b,0)/(vals.length||1);
+      const ownLatest=top.records.find(x=>x.id===state.pkg.id)||u.latest;
+      const rank=idx>=0?idx+1:null;
+      const box=$("#comparisonBox");if(!box)return;
+      box.innerHTML=`<h3>Comparative engagement</h3><div class="metric-grid" style="grid-template-columns:repeat(3,1fr)">${metric("Latest-month rank",rank?"#"+num(rank):"Beyond top 1,000",`${latest.year_annee}-${String(latest.month_mois).padStart(2,"0")} among ${num(top.total)} records`)}${metric("Latest-month visits",num(ownLatest?.visits_visites||0),"Compared with the portal's latest month")}${metric("Recent portal rating",baseline.toFixed(1)+"/5","Baseline from latest 1,000 ratings")}</div>`;
+    }catch(e){const box=$("#comparisonBox");if(box)notify(box,"Comparative engagement could not be loaded: "+e.message)}
+  }
+  async function loadSamples(){
+    const active=state.analysis.resources.filter(r=>r.datastore_active).slice(0,5);
+    active.forEach(async r=>{
+      try{
+        const d=await action("datastore_search",{resource_id:r.id,limit:20},API3), fields=d.fields.filter(f=>f.id!=="_id"), records=d.records;
+        const cells=records.length*fields.length, blanks=records.reduce((n,row)=>n+fields.filter(f=>row[f.id]===null||row[f.id]==="").length,0), blankRate=cells?Math.round(blanks/cells*100):0;
+        const el=document.getElementById("sample-"+r.id);if(!el)return;
+        el.innerHTML=`<summary>Data sample quality · ${num(d.total)} rows</summary><div class="sample-stats"><span>${fields.length} columns</span><span>${records.length} rows sampled</span><span>${blankRate}% blank cells</span></div><p class="note">${blankRate>20?"High blank-cell rate in sample; document optional fields and missing-value conventions.":"Sample completeness looks reasonable. Review full data before making publication decisions."}</p>`;
+      }catch(e){const el=document.getElementById("sample-"+r.id);if(el)el.innerHTML="<summary>Data sample unavailable</summary>"}
+    });
+  }
+  function actionsPanel(a){
+    const list=a.recs.slice().sort(prioritize);
+    return `<div class="section-head"><div><h2>Prioritized improvement plan</h2><p>${list.length} actionable recommendations from schema, FAIR, and resource checks.</p></div></div>${list.map((r,i)=>`<div class="action ${r.priority}"><div class="priority">${i+1}</div><div><h3>${esc(r.title)}</h3><p>${esc(r.detail)}</p></div><span class="pill">${esc(r.source)} · ${esc(r.priority)}</span></div>`).join("")||'<div class="empty">No improvements identified by this assessment.</div>'}`;
+  }
+  function prioritize(a,b){return ({high:0,medium:1,low:2}[a.priority]??3)-({high:0,medium:1,low:2}[b.priority]??3)}
+  function switchTab(i){document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===i));document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.dataset.panel===i))}
+  function showView(view){
+    ["browse","detail","help"].forEach(id=>$("#"+id).classList.toggle("hidden",id!==view));
+    if(view!=="detail")history.replaceState(null,"",view==="help"?"#help":location.pathname);
+    scrollTo({top:0,behavior:"smooth"});
+  }
+  function goBack(){showView("browse")}
+  $("#searchForm").onsubmit=e=>{e.preventDefault();evaluate($("#uuidInput").value)};
+  $("#refreshBtn").onclick=()=>loadRecent(false);$("#loadMoreBtn").onclick=()=>loadRecent(true);$("#backBtn").onclick=goBack;$("#helpBackBtn").onclick=goBack;$("#homeBtn").onclick=goBack;$("#helpBtn").onclick=()=>showView("help");
+  loadRecent();
+  if(location.hash==="#help")showView("help");else{const hash=new URLSearchParams(location.hash.slice(1));if(hash.get("dataset")){$("#uuidInput").value=hash.get("dataset");evaluate(hash.get("dataset"))}}
+})();
+</script>
+</body>
+</html>
