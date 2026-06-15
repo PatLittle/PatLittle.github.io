@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Look up Government of Canada service inventory records using live open.canada.ca data.">
+  <title>Service Inventory Lookup</title>
+  <style>
+    :root { color-scheme: light; }
+    [hidden] { display: none !important; }
+    .search-wrapper { position: relative; max-width: 42rem; }
+    .dropdown {
+      display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
+      max-height: 19rem; overflow-y: auto; background: #fff; border: 1.5px solid #b0b8c1;
+      border-radius: 4px; box-shadow: 0 4px 16px rgb(0 0 0 / 12%);
+    }
+    .dropdown.open { display: block; }
+    .dropdown-item {
+      padding: .65rem .875rem; cursor: pointer; border-bottom: 1px solid #eef1f5;
+      font-size: .925rem; line-height: 1.4;
+    }
+    .dropdown-item:last-child { border-bottom: 0; }
+    .dropdown-item.active, .dropdown-item:hover { background: #e8f2fd; }
+    .dropdown-note, .dropdown-note:hover { cursor: default; color: #5a6a7e; background: #fff; font-style: italic; }
+    mark { padding: 0 .125rem; background: #fde8e6; border-radius: 2px; }
+    #status {
+      max-width: 42rem; margin: 1.5rem 0; padding: 1rem 1.25rem; background: #f1f8fe;
+      border-left: .35rem solid #2b4380;
+    }
+    #status.error { background: #fdf3f3; border-left-color: #d3080c; }
+    #result {
+      margin-top: 1.5rem; padding: .75rem 1.5rem 1.4rem; background: #f8f9fb;
+      border: 1.5px solid #dce3ec; border-radius: 4px;
+    }
+    .result-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 2rem; margin: .75rem 0 1rem; }
+    .result-wide { grid-column: 1 / -1; }
+    .result-label {
+      margin-bottom: .125rem; color: #5a6a7e; font-size: .6875rem; font-weight: 700;
+      letter-spacing: .05em; text-transform: uppercase;
+    }
+    .result-value { margin: 0 0 .9rem; font-size: .9375rem; white-space: pre-line; overflow-wrap: anywhere; }
+    .result-id {
+      margin: 0 0 .875rem; color: #26374a; font-family: "Courier New", monospace;
+      font-size: 1.25rem; font-weight: 700; letter-spacing: .04em;
+    }
+    .result-link { color: #284f95; }
+    .meta { color: #5a6a7e; font-size: .875rem; }
+    .performance-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #dce3ec; }
+    .performance-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0; }
+    .metric-card, .standard-card { padding: 1rem; background: #fff; border: 1px solid #dce3ec; border-radius: 4px; }
+    .metric-value { margin: .25rem 0 0; color: #26374a; font-size: 1.55rem; font-weight: 700; line-height: 1.1; }
+    .standard-card { margin: 1rem 0; }
+    .standard-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .75rem; }
+    .standard-name { margin: 0; color: #26374a; font-size: 1rem; font-weight: 700; line-height: 1.4; }
+    .status-badge { flex: 0 0 auto; padding: .2rem .5rem; border-radius: 1rem; font-size: .75rem; font-weight: 700; }
+    .status-met { color: #164326; background: #d8eeca; }
+    .status-missed { color: #7a1c1c; background: #f7d4d4; }
+    .status-unknown { color: #38414c; background: #e6e9ed; }
+    .performance-bar { position: relative; height: 1.25rem; margin: 2rem 0 .6rem; background: #e6e9ed; border-radius: 2px; }
+    .performance-fill { height: 100%; background: #318000; border-radius: 2px; }
+    .performance-fill.missed { background: #d3080c; }
+    .target-marker { position: absolute; top: -.35rem; bottom: -.35rem; width: 3px; background: #26374a; transform: translateX(-1px); }
+    .target-marker::before { content: ""; position: absolute; top: -.35rem; left: -.22rem; border: .25rem solid transparent; border-top-color: #26374a; }
+    .bar-labels { display: flex; justify-content: space-between; gap: 1rem; color: #5a6a7e; font-size: .8rem; }
+    .standard-meta { display: flex; flex-wrap: wrap; gap: .35rem 1.5rem; margin-top: .8rem; color: #38414c; font-size: .875rem; }
+    .performance-note { max-width: 50rem; color: #5a6a7e; font-size: .825rem; }
+    .year-performance { margin: 1rem 0 1.5rem; }
+    .year-bar-row { display: grid; grid-template-columns: 6rem 1fr 5rem; gap: .75rem; align-items: center; margin: .7rem 0; }
+    .year-label { font-weight: 700; }
+    .year-track { height: 1.3rem; overflow: hidden; background: #e6e9ed; border-radius: 3px; }
+    .year-fill { height: 100%; background: #318000; }
+    .year-fill.missed { background: #d3080c; }
+    .year-value { text-align: right; font-weight: 700; }
+    .service-capabilities { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #dce3ec; }
+    .segment-bar { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .25rem; margin: 1rem 0; }
+    .segment {
+      display: flex; min-height: 6.5rem; padding: .7rem .55rem; align-items: center; justify-content: center;
+      flex-direction: column; gap: .35rem; color: #fff; text-align: center; border-radius: 3px;
+    }
+    .segment-y { background: #318000; }
+    .segment-n { background: #d3080c; }
+    .segment-na { color: #26374a; background: #dce3ec; }
+    .segment-label { font-size: .75rem; font-weight: 700; line-height: 1.25; }
+    .segment-value { font-size: .7rem; text-transform: uppercase; }
+    .segment-legend { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; color: #38414c; font-size: .825rem; }
+    .legend-swatch { display: inline-block; width: .85rem; height: .85rem; margin-right: .3rem; vertical-align: -.1rem; border-radius: 2px; }
+    .ai-panel { margin-top: 1.5rem; padding: 1rem; background: #fff; border: 1px solid #dce3ec; border-left: .4rem solid #6f6f6f; border-radius: 4px; }
+    .ai-panel.ai-enabled { border-left-color: #318000; }
+    .ai-panel.ai-disabled { border-left-color: #d3080c; }
+    .ai-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .ai-heading h4 { margin: 0; color: #26374a; font-size: 1rem; }
+    .ai-description { margin: .8rem 0 0; white-space: pre-line; }
+    .channel-section, .url-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #dce3ec; }
+    .channel-year { margin: 1.25rem 0; }
+    .channel-year-heading { margin: 0 0 .5rem; color: #26374a; font-size: 1rem; }
+    .channel-bar { display: flex; min-height: 2.5rem; overflow: hidden; background: #e6e9ed; border-radius: 4px; }
+    .channel-segment { display: flex; min-width: 2px; align-items: center; justify-content: center; color: #fff; font-size: .72rem; font-weight: 700; }
+    .channel-details { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .45rem 1rem; margin-top: .7rem; }
+    .channel-detail { display: flex; gap: .45rem; align-items: flex-start; font-size: .825rem; }
+    .channel-icon { flex: 0 0 auto; width: 1.25rem; text-align: center; font-size: 1rem; }
+    .attribute-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #dce3ec; }
+    .attribute-year { margin: 1rem 0; padding: 1rem; background: #fff; border: 1px solid #dce3ec; border-radius: 4px; }
+    .attribute-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem 1rem; margin-top: .75rem; }
+    .attribute-value { margin: .15rem 0 0; color: #26374a; font-weight: 700; overflow-wrap: anywhere; }
+    .identifier-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem 1rem; margin-top: .75rem; }
+    .identifier-card { padding: .8rem; border-radius: 4px; background: #eef1f5; }
+    .identifier-card.status-y { background: #d8eeca; }
+    .identifier-card.status-n { background: #f7d4d4; }
+    .url-grid { width: 100%; margin-top: 1rem; border-collapse: separate; border-spacing: .35rem; table-layout: fixed; }
+    .url-grid th { padding: .5rem; color: #26374a; text-align: left; }
+    .url-grid-cell { padding: .75rem; vertical-align: top; background: #fff; border: 1px solid #dce3ec; border-radius: 4px; }
+    .url-grid-status { display: flex; gap: .5rem; align-items: center; margin-bottom: .35rem; font-weight: 700; }
+    .url-grid-icon { display: inline-flex; width: 1.5rem; height: 1.5rem; align-items: center; justify-content: center; color: #fff; background: #d3080c; border-radius: 50%; }
+    .url-grid-icon.valid { background: #318000; }
+    .url-grid-url { display: block; margin-top: .35rem; font-size: .75rem; overflow-wrap: anywhere; }
+    .url-grid-note { color: #5a6a7e; font-size: .72rem; }
+    @media (max-width: 48rem) {
+      .result-grid { grid-template-columns: 1fr; }
+      .result-wide { grid-column: auto; }
+      .performance-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .standard-heading { display: block; }
+      .status-badge { display: inline-block; margin-top: .5rem; }
+      .segment-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .segment { min-height: 5.5rem; }
+      .ai-heading { display: block; }
+      .channel-details { grid-template-columns: 1fr; }
+      .year-bar-row { grid-template-columns: 5.5rem 1fr 4rem; gap: .4rem; }
+      .attribute-grid, .identifier-grid { grid-template-columns: 1fr; }
+      .url-grid, .url-grid tbody, .url-grid tr, .url-grid td { display: block; }
+      .url-grid thead { display: none; }
+      .url-grid tr { margin-bottom: 1rem; }
+      .url-grid td::before { content: attr(data-label); display: block; margin-bottom: .35rem; color: #5a6a7e; font-size: .68rem; font-weight: 700; text-transform: uppercase; }
+    }
+  </style>
+</head>
+<body>
+  <gcds-header lang-href="#" skip-to-href="#main-content">
+    <gcds-breadcrumbs slot="breadcrumb">
+      <gcds-breadcrumbs-item href="https://open.canada.ca/">Open Government</gcds-breadcrumbs-item>
+      <gcds-breadcrumbs-item href="#">Service Inventory Lookup</gcds-breadcrumbs-item>
+    </gcds-breadcrumbs>
+  </gcds-header>
+
+  <gcds-container id="main-content" layout="page" tag="main">
+    <gcds-heading tag="h1" id="page-title">Service Inventory Lookup</gcds-heading>
+    <gcds-text><em id="prototype-note">This prototype uses live data from the Open Government Portal CKAN API.</em></gcds-text>
+    <gcds-text id="intro">Find a service inventory record by selecting a department and searching for a service.</gcds-text>
+
+    <div id="status" role="status" aria-live="polite">
+      <strong id="status-title">Loading service inventory data...</strong>
+      <div class="meta" id="status-detail">Fetching service and department records from open.canada.ca.</div>
+    </div>
+
+    <div id="app" hidden>
+      <div class="search-wrapper">
+        <gcds-input input-id="dept-input" name="department" label="Department" hint="Start typing your department name" autocomplete="off"></gcds-input>
+        <div id="dept-dropdown" class="dropdown" role="listbox" aria-label="Department suggestions"></div>
+      </div>
+      <div class="search-wrapper">
+        <gcds-input input-id="service-input" name="service" label="Service name" hint="Type to search services in the selected department" autocomplete="off" disabled></gcds-input>
+        <div id="service-dropdown" class="dropdown" role="listbox" aria-label="Service suggestions"></div>
+      </div>
+
+      <div id="result" hidden aria-live="polite">
+        <gcds-heading tag="h2" id="result-title">Result</gcds-heading>
+        <dl class="result-grid">
+          <div>
+            <dt class="result-label" data-label="serviceId">Service inventory ID</dt>
+            <dd id="r-service-id" class="result-id"></dd>
+            <gcds-button id="copy-btn" type="button">Copy Service ID</gcds-button>
+          </div>
+          <div>
+            <dt class="result-label" data-label="fiscalYear">Fiscal year</dt>
+            <dd id="r-fiscal-year" class="result-value"></dd>
+            <dt class="result-label" data-label="serviceType">Service type</dt>
+            <dd id="r-service-type" class="result-value"></dd>
+          </div>
+          <div>
+            <dt class="result-label" data-label="serviceEn">Service name (English)</dt>
+            <dd id="r-service-en" class="result-value"></dd>
+          </div>
+          <div>
+            <dt class="result-label" data-label="serviceFr">Service name (French)</dt>
+            <dd id="r-service-fr" class="result-value"></dd>
+          </div>
+          <div>
+            <dt class="result-label" data-label="department">Department (gc_orgID)</dt>
+            <dd id="r-department" class="result-value"></dd>
+          </div>
+          <div>
+            <dt class="result-label" data-label="program">Program</dt>
+            <dd id="r-program" class="result-value"></dd>
+          </div>
+          <div class="result-wide">
+            <dt class="result-label" data-label="description">Description</dt>
+            <dd id="r-description" class="result-value"></dd>
+          </div>
+          <div>
+            <dt class="result-label" data-label="scope">Scope / recipient</dt>
+            <dd id="r-scope" class="result-value"></dd>
+          </div>
+          <div>
+            <dt class="result-label" data-label="applications">Total applications</dt>
+            <dd id="r-applications" class="result-value"></dd>
+          </div>
+          <div class="result-wide" id="uri-row">
+            <dt class="result-label" data-label="webpage">Service webpage</dt>
+            <dd class="result-value"><a id="r-uri" class="result-link" target="_blank" rel="noopener"></a></dd>
+          </div>
+        </dl>
+        <section id="classification-section" class="attribute-section">
+          <gcds-heading tag="h3" id="classification-title">Service classification</gcds-heading>
+          <p id="classification-intro"></p>
+          <div id="classification-years"></div>
+        </section>
+        <section id="identifier-section" class="attribute-section">
+          <gcds-heading tag="h3" id="identifier-title">Identifier usage</gcds-heading>
+          <p id="identifier-intro"></p>
+          <div id="identifier-years"></div>
+        </section>
+        <section id="capabilities-section" class="service-capabilities">
+          <gcds-heading tag="h3" id="online-title">Online service lifecycle</gcds-heading>
+          <p id="online-intro"></p>
+          <div id="online-segments"></div>
+          <div id="online-legend" class="segment-legend"></div>
+          <gcds-heading tag="h3" id="ai-section-title">AI enabled</gcds-heading>
+          <div id="ai-panels"></div>
+        </section>
+        <section id="channel-section" class="channel-section">
+          <gcds-heading tag="h3" id="channel-title">Service volumes by channel</gcds-heading>
+          <p id="channel-intro"></p>
+          <div id="channel-years"></div>
+        </section>
+        <section id="performance-section" class="performance-section" hidden>
+          <gcds-heading tag="h3" id="performance-title">Service volumes and performance</gcds-heading>
+          <p id="performance-intro"></p>
+          <div id="performance-status" class="meta" role="status" aria-live="polite"></div>
+          <div id="performance-content" hidden>
+            <div id="performance-summary" class="performance-summary"></div>
+            <div id="year-performance" class="year-performance"></div>
+            <p id="performance-note" class="performance-note"></p>
+            <div id="standards-list"></div>
+          </div>
+        </section>
+        <section id="url-section" class="url-section">
+          <gcds-heading tag="h3" id="url-title">Reported URL health</gcds-heading>
+          <p id="url-intro"></p>
+          <div id="url-status" class="meta" role="status" aria-live="polite"></div>
+          <table class="url-grid">
+            <thead><tr><th id="url-type-head">Reporting period / type</th><th id="url-en-head">English</th><th id="url-fr-head">French</th></tr></thead>
+            <tbody id="url-rows"></tbody>
+          </table>
+        </section>
+      </div>
+      <p class="meta" id="data-summary"></p>
+    </div>
+
+    <gcds-date-modified>2026-06-12</gcds-date-modified>
+  </gcds-container>
+
+  <gcds-footer display="full" contextual-heading="Open Government" contextual-links='{"Open Government Portal": "https://open.canada.ca/en/open-data", "Service data API": "https://open.canada.ca/data/en/api/3/action/datastore_search?resource_id=c0cf9766-b85b-48c3-b295-34f72305aaf6", "Department data API": "https://open.canada.ca/data/en/api/3/action/datastore_search?resource_id=3faaafb4-00e2-4303-947d-ac786b62559f"}'></gcds-footer>
+
+  <script>
+    const GCDS_CDN = "https://cdn.design-system.canada.ca";
+    const GCDS_COMPONENTS_VERSION = "1.3.1";
+    const GCDS_SHORTCUTS_VERSION = "1.1.0";
+
+    function loadStylesheet(id, href) {
+      return new Promise((resolve, reject) => {
+        if (document.getElementById(id)) return resolve();
+        const link = document.createElement("link");
+        link.id = id;
+        link.rel = "stylesheet";
+        link.href = href;
+        link.onload = resolve;
+        link.onerror = () => reject(new Error(`Unable to load ${href}`));
+        document.head.append(link);
+      });
+    }
+
+    async function loadGcds() {
+      const componentsBase = `${GCDS_CDN}/@gcds-core/components@${GCDS_COMPONENTS_VERSION}/dist/gcds`;
+      await Promise.all([
+        loadStylesheet("gcds-shortcuts-css", `${GCDS_CDN}/@gcds-core/css-shortcuts@${GCDS_SHORTCUTS_VERSION}/dist/gcds-css-shortcuts.min.css`),
+        loadStylesheet("gcds-components-css", `${componentsBase}/gcds.css`),
+        import(`${componentsBase}/gcds.esm.js`)
+      ]);
+      await Promise.all([
+        "gcds-header", "gcds-container", "gcds-heading", "gcds-text", "gcds-input",
+        "gcds-button", "gcds-date-modified", "gcds-footer"
+      ].map(name => customElements.whenDefined(name)));
+    }
+
+    (() => {
+      "use strict";
+      const SERVICE_ID = "c0cf9766-b85b-48c3-b295-34f72305aaf6";
+      const DEPT_ID = "3faaafb4-00e2-4303-947d-ac786b62559f";
+      const PERFORMANCE_ID = "8736cd7e-9bf9-4a45-9eee-a6cb3c43c07e";
+      const API = "https://open.canada.ca/data/en/api/3/action/datastore_search";
+      const LIMIT = 32000;
+      const CLASSIFICATION_CHOICES = {
+        service_type: {
+          APIR: { en: "Agreements, Permissions, Inspections, Rulings", fr: "Accords, autorisations, inspections, décisions" },
+          CER: { en: "Care, Education, Recreation", fr: "Soins, éducation, loisirs" },
+          GNC: { en: "Grants and Contributions", fr: "Subventions et contributions" },
+          INFO: { en: "Information", fr: "Informations" },
+          LRP: { en: "Legislation, Regulation, Policy", fr: "Législation, réglementation, politique" },
+          PPI: { en: "Penalties, Protection, Intervention", fr: "Pénalités, protection, interventions" },
+          REG_VOL: { en: "High Volume Regulatory Transactions", fr: "Opérations réglementaires à demande élevée" },
+          RES: { en: "Resources", fr: "Ressources" }
+        },
+        service_recipient_type: {
+          CLIENT: { en: "Targeted, Client-based service", fr: "Service ciblé axé sur les clients" },
+          SOCIETY: { en: "Untargeted, Societal-based service", fr: "Service non-ciblé axé sur la société" }
+        },
+        service_scope: {
+          CLUSTER: { en: "Internal Cluster Service", fr: "Service cluster interne" },
+          ENTERPRISE: { en: "Internal Enterprise Service", fr: "Service interne intégré" },
+          EXTERN: { en: "External Service", fr: "Service externe" },
+          INTERN: { en: "Internal Service", fr: "Service interne" }
+        },
+        client_target_groups: {
+          ECONOM: { en: "Economic Segments (Businesses)", fr: "Segments économiques (entreprises)" },
+          FOR: { en: "Foreign Entities", fr: "Entités étrangères" },
+          INTERN_GOV: { en: "Internal to Government", fr: "Interne au gouvernement" },
+          NGO: { en: "Non Profit Institutions and Organizations", fr: "Institutions et organismes sans but lucratif" },
+          PERSON: { en: "Persons", fr: "Particuliers" },
+          PTC: { en: "Provinces, Territories or Communities", fr: "Provinces, territoires et collectivités" }
+        }
+      };
+
+      const strings = {
+        en: {
+          title: "Service Inventory Lookup", prototype: "This prototype uses live data from the Open Government Portal CKAN API.",
+          intro: "Find a service inventory record by selecting a department and searching for a service.",
+          department: "Department", deptHint: "Start typing your department name", service: "Service name",
+          serviceHint: "Type to search services in the selected department", deptStart: "Start typing to search departments.",
+          noDept: "No matching departments found.", noService: "No matching services found.", result: "Result",
+          copy: "Copy Service ID", copied: "Copied!", copyFailed: "Copy failed", none: "Not reported",
+          performanceTitle: "Service volumes and performance", performanceIntro: "Reported results for every available reporting period.",
+          performanceLoading: "Loading performance data...", performanceNone: "No service-standard performance data was reported for this service and fiscal year.",
+          performanceError: "Performance data could not be loaded.", standards: "Reported standards", reportedVolume: "Volume across standards",
+          meetingVolume: "Volume meeting standards", weightedPerformance: "Volume-weighted performance", standardsMet: "standards met",
+          target: "Target", actual: "Actual", volume: "Volume", meetingTarget: "meeting target", channel: "Channel",
+          met: "Target met", missed: "Target not met", unknown: "Status not reported",
+          performanceNote: "Volumes are summed across service standards. The same interaction may be counted under more than one standard.",
+          resultsLink: "View published performance results",
+          onlineTitle: "Online service lifecycle", onlineIntro: "Reported availability of online capabilities across the service journey.",
+          onlineLabels: ["Account registration / enrollment", "Authentication", "Application", "Decision", "Issuance", "Issue resolution and feedback"],
+          yes: "Yes", no: "No", notApplicable: "Not applicable", aiTitle: "AI enabled",
+          aiEnabled: "AI enabled", aiDisabled: "AI not enabled", aiUnknown: "AI status not reported",
+          aiNoDescription: "No automated decision system description was reported.",
+          channelTitle: "Service volumes by channel", channelIntro: "Reported enquiries, visits, and applications by channel for every available reporting period.",
+          channelNone: "No numeric channel volumes were reported.", channelTotal: "reported interactions",
+          channelLabels: ["Phone enquiries", "Applications by phone", "Website visits", "Applications online", "Applications in person", "Applications by mail", "Applications by email", "Applications by fax", "Applications by other"],
+          urlTitle: "Reported URL health", urlIntro: "Only absolute HTTP(S) URLs are checked. Some destinations prevent browsers from exposing their response code.",
+          urlChecking: "Checking reported URLs...", urlNone: "No URLs were reported.", urlDone: "URL checks complete.",
+          urlTypes: { service: "Service page", standards: "Standards and targets", performance: "Performance results" },
+          language: "Language", typeLabel: "Type", response: "HTTP response", english: "English", french: "French",
+          blocked: "Blocked by site", failed: "Check failed", yearsAvailable: "Reporting periods",
+          classificationTitle: "Service classification", classificationIntro: "Reported service characteristics for every available reporting period.",
+          classificationLabels: ["Service type", "Recipient type", "Service scope", "Client target groups"],
+          identifierTitle: "Identifier usage", identifierIntro: "Whether the service reports using the Social Insurance Number or CRA Business Number.",
+          sin: "Social Insurance Number usage", businessNumber: "CRA Business Number usage",
+          validUrl: "Valid URL", invalidUrl: "Invalid URL", missingUrl: "Not entered", successfulResponse: "Successful response",
+          urlGridHead: "Reporting period / type", corsUnavailable: "Response code unavailable because the destination blocks browser inspection.",
+          summary: (s, d) => `Loaded ${s.toLocaleString("en-CA")} service records and ${d.toLocaleString("en-CA")} department records from open.canada.ca.`,
+          labels: ["Service inventory ID","Reporting periods","Service type","Service name (English)","Service name (French)","Department (gc_orgID)","Program","Description","Scope / recipient","Total applications","Service webpage"]
+        },
+        fr: {
+          title: "Recherche dans l’inventaire des services", prototype: "Ce prototype utilise les données en direct de l’API CKAN du Portail du gouvernement ouvert.",
+          intro: "Trouvez un dossier d’inventaire des services en sélectionnant un ministère et en recherchant un service.",
+          department: "Ministère", deptHint: "Commencez à saisir le nom de votre ministère", service: "Nom du service",
+          serviceHint: "Saisissez du texte pour rechercher les services du ministère sélectionné", deptStart: "Commencez à saisir pour rechercher des ministères.",
+          noDept: "Aucun ministère correspondant.", noService: "Aucun service correspondant.", result: "Résultat",
+          copy: "Copier l’ID du service", copied: "Copié!", copyFailed: "Échec de la copie", none: "Non déclaré",
+          performanceTitle: "Volumes et rendement du service", performanceIntro: "Résultats déclarés pour chaque période de déclaration disponible.",
+          performanceLoading: "Chargement des données de rendement...", performanceNone: "Aucune donnée de rendement sur les normes de service n’a été déclarée pour ce service et cet exercice.",
+          performanceError: "Les données de rendement n’ont pas pu être chargées.", standards: "Normes déclarées", reportedVolume: "Volume pour toutes les normes",
+          meetingVolume: "Volume respectant les normes", weightedPerformance: "Rendement pondéré selon le volume", standardsMet: "normes respectées",
+          target: "Cible", actual: "Résultat", volume: "Volume", meetingTarget: "respectant la cible", channel: "Voie",
+          met: "Cible atteinte", missed: "Cible non atteinte", unknown: "État non déclaré",
+          performanceNote: "Les volumes sont additionnés pour toutes les normes de service. Une même interaction peut être comptée dans plus d’une norme.",
+          resultsLink: "Voir les résultats de rendement publiés",
+          onlineTitle: "Cycle de vie du service en ligne", onlineIntro: "Disponibilité déclarée des fonctions en ligne tout au long du parcours de service.",
+          onlineLabels: ["Inscription / enregistrement du compte", "Authentification", "Demande", "Décision", "Délivrance", "Résolution des problèmes et rétroaction"],
+          yes: "Oui", no: "Non", notApplicable: "Sans objet", aiTitle: "IA activée",
+          aiEnabled: "IA activée", aiDisabled: "IA non activée", aiUnknown: "État de l’IA non déclaré",
+          aiNoDescription: "Aucune description du système de décision automatisé n’a été déclarée.",
+          channelTitle: "Volumes de service par voie", channelIntro: "Demandes de renseignements, visites et demandes déclarées par voie pour chaque période disponible.",
+          channelNone: "Aucun volume numérique par voie n’a été déclaré.", channelTotal: "interactions déclarées",
+          channelLabels: ["Demandes par téléphone", "Demandes présentées par téléphone", "Visites du site Web", "Demandes en ligne", "Demandes en personne", "Demandes par la poste", "Demandes par courriel", "Demandes par télécopieur", "Demandes par autre voie"],
+          urlTitle: "État des URL déclarées", urlIntro: "Seules les URL HTTP(S) absolues sont vérifiées. Certaines destinations empêchent les navigateurs d’exposer leur code de réponse.",
+          urlChecking: "Vérification des URL déclarées...", urlNone: "Aucune URL n’a été déclarée.", urlDone: "Vérification des URL terminée.",
+          urlTypes: { service: "Page du service", standards: "Normes et cibles", performance: "Résultats de rendement" },
+          language: "Langue", typeLabel: "Type", response: "Réponse HTTP", english: "Anglais", french: "Français",
+          blocked: "Bloqué par le site", failed: "Échec de la vérification", yearsAvailable: "Périodes de déclaration",
+          classificationTitle: "Classification du service", classificationIntro: "Caractéristiques déclarées du service pour chaque période de déclaration disponible.",
+          classificationLabels: ["Type de service", "Type de bénéficiaire", "Portée du service", "Groupes de clients cibles"],
+          identifierTitle: "Utilisation des identifiants", identifierIntro: "Indique si le service déclare utiliser le numéro d’assurance sociale ou le numéro d’entreprise de l’ARC.",
+          sin: "Utilisation du numéro d’assurance sociale", businessNumber: "Utilisation du numéro d’entreprise de l’ARC",
+          validUrl: "URL valide", invalidUrl: "URL non valide", missingUrl: "Non saisie", successfulResponse: "Réponse réussie",
+          urlGridHead: "Période de déclaration / type", corsUnavailable: "Code de réponse non disponible parce que la destination bloque l’inspection par le navigateur.",
+          summary: (s, d) => `${s.toLocaleString("fr-CA")} dossiers de services et ${d.toLocaleString("fr-CA")} dossiers de ministères chargés depuis ouvert.canada.ca.`,
+          labels: ["ID de l’inventaire des services","Périodes de déclaration","Type de service","Nom du service (anglais)","Nom du service (français)","Ministère (gc_orgID)","Programme","Description","Portée / bénéficiaire","Nombre total de demandes","Page Web du service"]
+        }
+      };
+      let lang = "en", services = [], departments = [], currentDept = null, selectedService = null, selectedPeriods = [], performanceRecords = [];
+      let deptMatches = [], serviceMatches = [], deptActive = -1, serviceActive = -1;
+      let performanceRequest = 0, urlRequest = 0;
+      const $ = id => document.getElementById(id);
+      const deptInput = document.querySelector('gcds-input[input-id="dept-input"]');
+      const serviceInput = document.querySelector('gcds-input[input-id="service-input"]');
+      const langLink = document.querySelector("gcds-header");
+
+      function readValue(e) { return e.detail?.value ?? e.target?.value ?? ""; }
+      function clean(value) { return value == null || value === "" ? strings[lang].none : String(value).replace(/^"|"$/g, ""); }
+      function number(value) { if (value == null || value === "") return null; const parsed = Number(value); return Number.isFinite(parsed) ? parsed : null; }
+      function formatNumber(value) { return value == null ? strings[lang].none : value.toLocaleString(lang === "en" ? "en-CA" : "fr-CA"); }
+      function formatPercent(value) { return value == null ? strings[lang].none : value.toLocaleString(lang === "en" ? "en-CA" : "fr-CA", { style: "percent", maximumFractionDigits: 1 }); }
+      function deptName(d) { return lang === "en" ? d.harmonized_name : d.nom_harmonise; }
+      function deptAcronym(d) { return lang === "en" ? d.abbreviation : d.abreviation; }
+      function serviceName(s) { return lang === "en" ? s.service_name_en : s.service_name_fr; }
+      function serviceLabel(s) { return serviceName(s); }
+      function serviceKey(s) { return `${s.owner_org}::${s.service_id}`; }
+      function esc(s) { const e = document.createElement("span"); e.textContent = s ?? ""; return e.innerHTML; }
+      function highlight(text, q) {
+        if (!q) return esc(text);
+        const i = text.toLocaleLowerCase().indexOf(q.toLocaleLowerCase());
+        return i < 0 ? esc(text) : esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + q.length)) + "</mark>" + esc(text.slice(i + q.length));
+      }
+      function setDropdown(el, matches, active, q, labelFn, empty) {
+        el.textContent = "";
+        if (!matches.length) {
+          const note = document.createElement("div"); note.className = "dropdown-item dropdown-note"; note.textContent = empty; el.append(note);
+        } else matches.forEach((item, i) => {
+          const row = document.createElement("div"); row.className = "dropdown-item" + (i === active ? " active" : "");
+          row.role = "option"; row.innerHTML = highlight(labelFn(item), q); row.addEventListener("mousedown", e => { e.preventDefault(); el === $("dept-dropdown") ? selectDept(item) : selectService(item); }); el.append(row);
+        });
+        el.classList.add("open");
+      }
+      function closeDropdown(el) { el.classList.remove("open"); el.textContent = ""; }
+
+      function runDeptSearch(q = "") {
+        if (currentDept && deptInput.value !== deptName(currentDept)) resetDept();
+        const needle = q.trim().toLocaleLowerCase();
+        deptMatches = departments.filter(d => `${deptName(d)} ${deptAcronym(d) || ""}`.toLocaleLowerCase().includes(needle)).slice(0, 12);
+        deptActive = -1;
+        setDropdown($("dept-dropdown"), needle ? deptMatches : [], deptActive, needle, d => `${deptName(d)}${deptAcronym(d) ? ` (${deptAcronym(d)})` : ""}`, needle ? strings[lang].noDept : strings[lang].deptStart);
+      }
+      function selectDept(dept) {
+        currentDept = dept; deptInput.value = deptName(dept); serviceInput.disabled = false; serviceInput.value = "";
+        selectedService = null; selectedPeriods = []; performanceRecords = []; performanceRequest++; urlRequest++; $("result").hidden = true; closeDropdown($("dept-dropdown")); runServiceSearch("");
+      }
+      function resetDept() {
+        currentDept = null; selectedService = null; selectedPeriods = []; performanceRecords = []; performanceRequest++; urlRequest++;
+        serviceInput.value = ""; serviceInput.disabled = true; $("result").hidden = true; closeDropdown($("service-dropdown"));
+      }
+      function runServiceSearch(q = "") {
+        if (!currentDept) return;
+        const needle = q.trim().toLocaleLowerCase();
+        const candidates = services.filter(s => s.owner_org === currentDept.open_gov_ouvert && (!needle || serviceName(s).toLocaleLowerCase().includes(needle)))
+          .sort((a, b) => serviceName(a).localeCompare(serviceName(b), lang === "en" ? "en-CA" : "fr-CA"));
+        serviceMatches = candidates.filter((s, i, all) => all.findIndex(item => serviceKey(item) === serviceKey(s)) === i).slice(0, 100);
+        serviceActive = -1; $("result").hidden = true;
+        setDropdown($("service-dropdown"), serviceMatches, serviceActive, needle, serviceLabel, strings[lang].noService);
+      }
+      function selectService(s) {
+        selectedPeriods = services.filter(item => serviceKey(item) === serviceKey(s)).sort((a, b) => b.fiscal_yr.localeCompare(a.fiscal_yr));
+        selectedService = selectedPeriods[0] || s; s = selectedService; serviceInput.value = serviceName(s); closeDropdown($("service-dropdown"));
+        $("r-service-id").textContent = clean(s.service_id); $("r-fiscal-year").textContent = selectedPeriods.map(p => p.fiscal_yr).join(", ");
+        $("r-service-type").textContent = clean(s.service_type); $("r-service-en").textContent = clean(s.service_name_en);
+        $("r-service-fr").textContent = clean(s.service_name_fr);
+        $("r-department").textContent = `${deptName(currentDept)}${currentDept.gc_orgID ? ` (${currentDept.gc_orgID})` : ""}`;
+        const programName = lang === "en" ? s.program_name_en : s.program_name_fr;
+        $("r-program").textContent = [s.program_id, clean(programName)].filter(v => v && v !== strings[lang].none).join(" — ") || strings[lang].none;
+        $("r-description").textContent = clean(lang === "en" ? s.service_description_en : s.service_description_fr);
+        $("r-scope").textContent = `${clean(s.service_scope)} / ${clean(s.service_recipient_type)}`;
+        $("r-applications").textContent = clean(s.num_applications_total);
+        const uri = lang === "en" ? s.service_uri_en : s.service_uri_fr;
+        const validUri = absoluteUrl(uri);
+        $("uri-row").hidden = !validUri; $("r-uri").href = validUri || ""; $("r-uri").textContent = validUri || "";
+        $("copy-btn").textContent = strings[lang].copy; $("result").hidden = false;
+        renderClassification();
+        renderIdentifiers();
+        renderCapabilities(s);
+        renderChannels();
+        loadPerformance(s);
+      }
+      function normalizedStatus(value) {
+        const status = String(value || "").toUpperCase();
+        return status === "Y" ? "y" : status === "N" ? "n" : "na";
+      }
+      function absoluteUrl(value) {
+        if (!value || typeof value !== "string") return null;
+        try {
+          const parsed = new URL(value.trim());
+          return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : null;
+        } catch (_) { return null; }
+      }
+      function classificationValue(field, value) {
+        if (!value) return strings[lang].none;
+        return String(value).split(",").map(raw => {
+          const code = raw.trim(), choice = CLASSIFICATION_CHOICES[field]?.[code];
+          return choice ? `${choice[lang]} (${code})` : code;
+        }).join("; ");
+      }
+      function renderClassification() {
+        const t = strings[lang], fields = ["service_type", "service_recipient_type", "service_scope", "client_target_groups"];
+        $("classification-title").textContent = t.classificationTitle; $("classification-intro").textContent = t.classificationIntro; $("classification-years").textContent = "";
+        selectedPeriods.slice().sort((a, b) => a.fiscal_yr.localeCompare(b.fiscal_yr)).forEach(period => {
+          const section = document.createElement("article"); section.className = "attribute-year";
+          const heading = document.createElement("h4"); heading.className = "channel-year-heading"; heading.textContent = period.fiscal_yr;
+          const grid = document.createElement("div"); grid.className = "attribute-grid";
+          fields.forEach((field, index) => {
+            const item = document.createElement("div");
+            const label = document.createElement("div"); label.className = "result-label"; label.textContent = t.classificationLabels[index];
+            const value = document.createElement("p"); value.className = "attribute-value"; value.textContent = classificationValue(field, period[field]);
+            item.append(label, value); grid.append(item);
+          });
+          section.append(heading, grid); $("classification-years").append(section);
+        });
+      }
+      function renderIdentifiers() {
+        const t = strings[lang];
+        $("identifier-title").textContent = t.identifierTitle; $("identifier-intro").textContent = t.identifierIntro; $("identifier-years").textContent = "";
+        selectedPeriods.slice().sort((a, b) => a.fiscal_yr.localeCompare(b.fiscal_yr)).forEach(period => {
+          const section = document.createElement("article"); section.className = "attribute-year";
+          const heading = document.createElement("h4"); heading.className = "channel-year-heading"; heading.textContent = period.fiscal_yr;
+          const grid = document.createElement("div"); grid.className = "identifier-grid";
+          [["sin_usage", t.sin], ["cra_bn_identifier_usage", t.businessNumber]].forEach(([field, labelText]) => {
+            const status = normalizedStatus(period[field]), card = document.createElement("div"); card.className = `identifier-card status-${status}`;
+            const label = document.createElement("div"); label.className = "result-label"; label.textContent = labelText;
+            const value = document.createElement("p"); value.className = "attribute-value"; value.textContent = status === "y" ? t.yes : status === "n" ? t.no : t.notApplicable;
+            card.append(label, value); grid.append(card);
+          });
+          section.append(heading, grid); $("identifier-years").append(section);
+        });
+      }
+      function renderCapabilities(service) {
+        const t = strings[lang];
+        const fields = ["os_account_registration", "os_authentication", "os_application", "os_decision", "os_issuance", "os_issue_resolution_feedback"];
+        $("online-title").textContent = t.onlineTitle; $("online-intro").textContent = t.onlineIntro; $("online-segments").textContent = "";
+        selectedPeriods.slice().sort((a, b) => a.fiscal_yr.localeCompare(b.fiscal_yr)).forEach(period => {
+          const section = document.createElement("article"); section.className = "channel-year";
+          const heading = document.createElement("h4"); heading.className = "channel-year-heading"; heading.textContent = period.fiscal_yr;
+          const bar = document.createElement("div"); bar.className = "segment-bar";
+          fields.forEach((field, index) => {
+            const status = normalizedStatus(period[field]);
+            const segment = document.createElement("div"); segment.className = `segment segment-${status}`;
+            segment.setAttribute("role", "img");
+            const statusText = status === "y" ? t.yes : status === "n" ? t.no : t.notApplicable;
+            segment.setAttribute("aria-label", `${t.onlineLabels[index]}: ${statusText}`);
+            const label = document.createElement("span"); label.className = "segment-label"; label.textContent = t.onlineLabels[index];
+            const value = document.createElement("span"); value.className = "segment-value"; value.textContent = statusText;
+            segment.append(label, value); bar.append(segment);
+          });
+          section.append(heading, bar); $("online-segments").append(section);
+        });
+        $("online-legend").innerHTML = [
+          ["#318000", t.yes], ["#d3080c", t.no], ["#dce3ec", t.notApplicable]
+        ].map(([colour, label]) => `<span><i class="legend-swatch" style="background:${colour}"></i>${esc(label)}</span>`).join("");
+        $("ai-section-title").textContent = t.aiTitle; $("ai-panels").textContent = "";
+        selectedPeriods.slice().sort((a, b) => a.fiscal_yr.localeCompare(b.fiscal_yr)).forEach(period => {
+          const aiStatus = normalizedStatus(period.automated_decision_system);
+          const panel = document.createElement("article"); panel.className = `ai-panel ${aiStatus === "y" ? "ai-enabled" : aiStatus === "n" ? "ai-disabled" : ""}`;
+          const heading = document.createElement("div"); heading.className = "ai-heading";
+          const title = document.createElement("h4"); title.textContent = period.fiscal_yr;
+          const badge = document.createElement("span"); badge.className = `status-badge ${aiStatus === "y" ? "status-met" : aiStatus === "n" ? "status-missed" : "status-unknown"}`;
+          badge.textContent = aiStatus === "y" ? t.aiEnabled : aiStatus === "n" ? t.aiDisabled : t.aiUnknown;
+          heading.append(title, badge);
+          const description = lang === "en" ? period.automated_decision_system_description_en : period.automated_decision_system_description_fr;
+          const text = document.createElement("p"); text.className = "ai-description";
+          text.textContent = description && !["NA", "N/A"].includes(String(description).trim().toUpperCase()) ? description : t.aiNoDescription;
+          panel.append(heading, text); $("ai-panels").append(panel);
+        });
+      }
+      function renderChannels() {
+        const t = strings[lang];
+        const fields = ["num_phone_enquiries", "num_applications_by_phone", "num_website_visits", "num_applications_online", "num_applications_in_person", "num_applications_by_mail", "num_applications_by_email", "num_applications_by_fax", "num_applications_by_other"];
+        const icons = ["☎", "☎", "⌂", "▣", "♟", "✉", "@", "▤", "＋"];
+        const colours = ["#1f5a94", "#3b7fc4", "#6f4e9c", "#8b68b5", "#008571", "#a75d00", "#c77c11", "#7a6263", "#536878"];
+        $("channel-title").textContent = t.channelTitle; $("channel-intro").textContent = t.channelIntro; $("channel-years").textContent = "";
+        selectedPeriods.slice().sort((a, b) => a.fiscal_yr.localeCompare(b.fiscal_yr)).forEach(period => {
+          const values = fields.map((field, index) => ({ index, value: number(period[field]) })).filter(item => item.value != null);
+          const total = values.reduce((sum, item) => sum + item.value, 0);
+          const section = document.createElement("article"); section.className = "channel-year";
+          const heading = document.createElement("h4"); heading.className = "channel-year-heading"; heading.textContent = `${period.fiscal_yr} — ${formatNumber(total)} ${t.channelTotal}`; section.append(heading);
+          if (!values.length || total <= 0) {
+            const empty = document.createElement("p"); empty.className = "meta"; empty.textContent = t.channelNone; section.append(empty); $("channel-years").append(section); return;
+          }
+          const bar = document.createElement("div"); bar.className = "channel-bar"; bar.setAttribute("role", "img");
+          bar.setAttribute("aria-label", values.map(item => `${t.channelLabels[item.index]}: ${formatNumber(item.value)}, ${formatPercent(item.value / total)}`).join(". "));
+          values.filter(item => item.value > 0).forEach(item => {
+            const segment = document.createElement("div"); segment.className = "channel-segment"; segment.style.width = `${item.value / total * 100}%`; segment.style.background = colours[item.index];
+            if (item.value / total >= .1) segment.textContent = `${Math.round(item.value / total * 100)}%`;
+            bar.append(segment);
+          });
+          const details = document.createElement("div"); details.className = "channel-details";
+          values.forEach(item => {
+            const detail = document.createElement("div"); detail.className = "channel-detail";
+            detail.innerHTML = `<span class="channel-icon" aria-hidden="true">${icons[item.index]}</span><span><strong>${esc(t.channelLabels[item.index])}</strong><br>${esc(formatNumber(item.value))} (${esc(formatPercent(item.value / total))})</span>`;
+            details.append(detail);
+          });
+          section.append(bar, details); $("channel-years").append(section);
+        });
+      }
+      function metricCard(label, value) {
+        const card = document.createElement("div"); card.className = "metric-card";
+        const heading = document.createElement("div"); heading.className = "result-label"; heading.textContent = label;
+        const metric = document.createElement("p"); metric.className = "metric-value"; metric.textContent = value;
+        card.append(heading, metric); return card;
+      }
+      function renderPerformance() {
+        const t = strings[lang], records = performanceRecords;
+        $("performance-title").textContent = t.performanceTitle; $("performance-intro").textContent = t.performanceIntro;
+        $("performance-summary").textContent = ""; $("year-performance").textContent = ""; $("standards-list").textContent = "";
+        if (!records.length) { $("performance-content").hidden = true; $("performance-status").textContent = t.performanceNone; return; }
+        $("performance-status").textContent = ""; $("performance-content").hidden = false;
+        const volumes = records.map(r => number(r.total_volume)).filter(v => v != null);
+        const meeting = records.map(r => number(r.volume_meeting_target)).filter(v => v != null);
+        const weightedPairs = records.map(r => [number(r.total_volume), number(r.volume_meeting_target)]).filter(([total, met]) => total != null && met != null);
+        const totalVolume = volumes.reduce((a, b) => a + b, 0), meetingVolume = meeting.reduce((a, b) => a + b, 0);
+        const weightedTotal = weightedPairs.reduce((sum, [total]) => sum + total, 0);
+        const weightedMeeting = weightedPairs.reduce((sum, [, met]) => sum + met, 0);
+        const weighted = weightedTotal > 0 ? weightedMeeting / weightedTotal : null;
+        const metCount = records.filter(r => r.target_met === "Y").length;
+        [
+          metricCard(t.standards, formatNumber(records.length)),
+          metricCard(t.reportedVolume, volumes.length ? formatNumber(totalVolume) : t.none),
+          metricCard(t.meetingVolume, meeting.length ? formatNumber(meetingVolume) : t.none),
+          metricCard(t.weightedPerformance, formatPercent(weighted))
+        ].forEach(card => $("performance-summary").append(card));
+        [...new Set(records.map(r => r.fiscal_yr))].sort().forEach(year => {
+          const yearRecords = records.filter(r => r.fiscal_yr === year);
+          const pairs = yearRecords.map(r => [number(r.total_volume), number(r.volume_meeting_target)]).filter(([total, met]) => total != null && met != null);
+          const total = pairs.reduce((sum, [value]) => sum + value, 0), met = pairs.reduce((sum, [, value]) => sum + value, 0);
+          const result = total > 0 ? met / total : null;
+          const missed = yearRecords.some(record => record.target_met === "N");
+          const row = document.createElement("div"); row.className = "year-bar-row";
+          row.innerHTML = `<span class="year-label">${esc(year)}</span><div class="year-track" role="img" aria-label="${esc(year)}: ${esc(formatPercent(result))}"><div class="year-fill${missed ? " missed" : ""}" style="width:${result == null ? 0 : Math.min(Math.max(result, 0), 1) * 100}%"></div></div><span class="year-value">${esc(formatPercent(result))}</span>`;
+          $("year-performance").append(row);
+        });
+        records.sort((a, b) => clean(lang === "en" ? a.service_standard_en : a.service_standard_fr).localeCompare(clean(lang === "en" ? b.service_standard_en : b.service_standard_fr), lang === "en" ? "en-CA" : "fr-CA"))
+          .forEach(record => {
+            const actual = number(record.performance), target = number(record.target), volume = number(record.total_volume), metVolume = number(record.volume_meeting_target);
+            const status = record.target_met === "Y" ? "met" : record.target_met === "N" ? "missed" : "unknown";
+            const card = document.createElement("article"); card.className = "standard-card";
+            const heading = document.createElement("div"); heading.className = "standard-heading";
+            const name = document.createElement("h4"); name.className = "standard-name"; name.textContent = `${record.fiscal_yr} — ${clean(lang === "en" ? record.service_standard_en : record.service_standard_fr)}`;
+            const badge = document.createElement("span"); badge.className = `status-badge status-${status}`; badge.textContent = t[status];
+            heading.append(name, badge); card.append(heading);
+            if (actual != null || target != null) {
+              const bar = document.createElement("div"); bar.className = "performance-bar";
+              bar.setAttribute("role", "img"); bar.setAttribute("aria-label", `${t.actual}: ${formatPercent(actual)}. ${t.target}: ${formatPercent(target)}.`);
+              const fill = document.createElement("div"); fill.className = `performance-fill${status === "missed" ? " missed" : ""}`; fill.style.width = `${Math.min(Math.max(actual || 0, 0), 1) * 100}%`; bar.append(fill);
+              if (target != null) { const marker = document.createElement("span"); marker.className = "target-marker"; marker.style.left = `${Math.min(Math.max(target, 0), 1) * 100}%`; bar.append(marker); }
+              const labels = document.createElement("div"); labels.className = "bar-labels"; labels.innerHTML = `<span>${esc(t.actual)}: <strong>${esc(formatPercent(actual))}</strong></span><span>${esc(t.target)}: <strong>${esc(formatPercent(target))}</strong></span>`;
+              card.append(bar, labels);
+            }
+            const meta = document.createElement("div"); meta.className = "standard-meta";
+            meta.innerHTML = `<span><strong>${esc(t.volume)}:</strong> ${esc(formatNumber(volume))}</span><span><strong>${esc(t.meetingTarget)}:</strong> ${esc(formatNumber(metVolume))}</span><span><strong>${esc(t.channel)}:</strong> ${esc(clean(record.channel))}</span>`;
+            card.append(meta);
+            const link = lang === "en" ? record.performance_results_uri_en : record.performance_results_uri_fr;
+            if (link) { const p = document.createElement("p"); p.className = "result-value"; const a = document.createElement("a"); a.className = "result-link"; a.href = link; a.target = "_blank"; a.rel = "noopener"; a.textContent = t.resultsLink; p.append(a); card.append(p); }
+            $("standards-list").append(card);
+          });
+        $("performance-note").textContent = `${metCount} / ${records.length} ${t.standardsMet}. ${t.performanceNote}`;
+      }
+      async function loadPerformance(service) {
+        const request = ++performanceRequest, t = strings[lang];
+        performanceRecords = []; $("performance-section").hidden = false; $("performance-content").hidden = true; $("performance-status").textContent = t.performanceLoading;
+        try {
+          const records = await fetchResource(PERFORMANCE_ID, { service_id: service.service_id });
+          if (request !== performanceRequest || selectedService !== service) return;
+          performanceRecords = records.filter(r => !r.owner_org || r.owner_org === service.owner_org).sort((a, b) => a.fiscal_yr.localeCompare(b.fiscal_yr)); renderPerformance(); renderUrlHealth();
+        } catch (_) {
+          if (request !== performanceRequest) return;
+          $("performance-content").hidden = true; $("performance-status").textContent = t.performanceError; renderUrlHealth();
+        }
+      }
+      async function checkUrl(url) {
+        const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 12000);
+        try {
+          let response = await fetch(url, { method: "HEAD", mode: "cors", redirect: "follow", signal: controller.signal, cache: "no-store" });
+          if ([405, 501].includes(response.status)) response = await fetch(url, { method: "GET", mode: "cors", redirect: "follow", signal: controller.signal, cache: "no-store" });
+          return { code: response.status, ok: response.ok };
+        } catch (error) {
+          return { code: error.name === "AbortError" ? strings[lang].failed : strings[lang].blocked, ok: false };
+        } finally { clearTimeout(timer); }
+      }
+      async function renderUrlHealth() {
+        const request = ++urlRequest, t = strings[lang];
+        $("url-title").textContent = t.urlTitle; $("url-intro").textContent = t.urlIntro;
+        $("url-type-head").textContent = t.urlGridHead; $("url-en-head").textContent = t.english; $("url-fr-head").textContent = t.french;
+        $("url-rows").textContent = ""; $("url-status").textContent = t.urlChecking;
+        const entries = [];
+        selectedPeriods.slice().sort((a, b) => a.fiscal_yr.localeCompare(b.fiscal_yr)).forEach(period => {
+          const yearPerformance = performanceRecords.filter(record => record.fiscal_yr === period.fiscal_yr);
+          const first = field => yearPerformance.find(record => record[field])?.[field] || null;
+          entries.push(
+            { year: period.fiscal_yr, type: "service", en: period.service_uri_en, fr: period.service_uri_fr },
+            { year: period.fiscal_yr, type: "standards", en: first("standards_targets_uri_en"), fr: first("standards_targets_uri_fr") },
+            { year: period.fiscal_yr, type: "performance", en: first("performance_results_uri_en"), fr: first("performance_results_uri_fr") }
+          );
+        });
+        const checks = new Map();
+        const urls = [...new Set(entries.flatMap(entry => [absoluteUrl(entry.en), absoluteUrl(entry.fr)]).filter(Boolean))];
+        await Promise.all(urls.map(async url => checks.set(url, await checkUrl(url))));
+        if (request !== urlRequest) return;
+        function urlCell(raw, language) {
+          const cell = document.createElement("td"); cell.className = "url-grid-cell"; cell.dataset.label = language;
+          const url = absoluteUrl(raw), result = url ? checks.get(url) : null;
+          const valid = Boolean(url && result?.ok);
+          const status = document.createElement("div"); status.className = "url-grid-status";
+          const icon = document.createElement("span"); icon.className = `url-grid-icon${valid ? " valid" : ""}`; icon.textContent = valid ? "✓" : "×";
+          const text = document.createElement("span");
+          text.textContent = valid ? `${t.validUrl} — HTTP ${result.code}` : !raw ? t.missingUrl : !url ? t.invalidUrl : typeof result?.code === "number" ? `HTTP ${result.code}` : result?.code || t.failed;
+          status.append(icon, text); cell.append(status);
+          if (url) {
+            const link = document.createElement("a"); link.className = "url-grid-url result-link"; link.href = url; link.target = "_blank"; link.rel = "noopener"; link.textContent = url; cell.append(link);
+            if (result && typeof result.code !== "number") { const note = document.createElement("div"); note.className = "url-grid-note"; note.textContent = t.corsUnavailable; cell.append(note); }
+          } else if (raw) {
+            const invalid = document.createElement("span"); invalid.className = "url-grid-url"; invalid.textContent = raw; cell.append(invalid);
+          }
+          return cell;
+        }
+        entries.forEach(entry => {
+          const row = document.createElement("tr");
+          const label = document.createElement("td"); label.className = "url-grid-cell"; label.dataset.label = t.urlGridHead;
+          label.innerHTML = `<strong>${esc(entry.year)}</strong><br>${esc(t.urlTypes[entry.type])}`;
+          row.append(label, urlCell(entry.en, t.english), urlCell(entry.fr, t.french));
+          $("url-rows").append(row);
+        });
+        $("url-status").textContent = t.urlDone;
+      }
+      function applyLanguage() {
+        const t = strings[lang]; document.documentElement.lang = lang; document.title = t.title; $("page-title").textContent = t.title;
+        $("prototype-note").textContent = t.prototype; $("intro").textContent = t.intro; $("result-title").textContent = t.result;
+        deptInput.label = t.department; deptInput.hint = t.deptHint; serviceInput.label = t.service; serviceInput.hint = t.serviceHint;
+        $("copy-btn").textContent = t.copy; document.querySelectorAll("[data-label]").forEach((el, i) => el.textContent = t.labels[i]);
+        $("data-summary").textContent = t.summary(services.length, departments.length);
+        if (currentDept) deptInput.value = deptName(currentDept);
+        if (selectedService) { serviceInput.value = serviceName(selectedService); selectService(selectedService); }
+      }
+      function keyboard(input, dropdown, matchesFn, activeGet, activeSet, select) {
+        input.addEventListener("keydown", e => {
+          if (!dropdown.classList.contains("open")) return;
+          const matches = matchesFn(); let active = activeGet();
+          if (e.key === "ArrowDown") { e.preventDefault(); activeSet(Math.min(active + 1, matches.length - 1)); }
+          else if (e.key === "ArrowUp") { e.preventDefault(); activeSet(Math.max(active - 1, 0)); }
+          else if (e.key === "Enter" && active >= 0) { e.preventDefault(); select(matches[active]); }
+          else if (e.key === "Escape") closeDropdown(dropdown); else return;
+          if (e.key.startsWith("Arrow")) {
+            const q = input.value || ""; setDropdown(dropdown, matches, activeGet(), q, dropdown === $("dept-dropdown") ? d => `${deptName(d)}${deptAcronym(d) ? ` (${deptAcronym(d)})` : ""}` : serviceLabel, "");
+          }
+        });
+      }
+      function fetchResource(id, filters) {
+        return new Promise((resolve, reject) => {
+          const callback = `ckanCallback_${id.replaceAll("-", "")}_${Date.now()}`;
+          const script = document.createElement("script");
+          const timer = setTimeout(() => finish(new Error("CKAN request timed out")), 30000);
+          function finish(error, records) {
+            clearTimeout(timer); script.remove(); delete window[callback];
+            error ? reject(error) : resolve(records);
+          }
+          window[callback] = data => data.success
+            ? finish(null, data.result.records)
+            : finish(new Error(data.error?.message || "CKAN request failed"));
+          script.onerror = () => finish(new Error("CKAN data could not be downloaded"));
+          const params = new URLSearchParams({ resource_id: id, limit: String(LIMIT), callback });
+          if (filters) params.set("filters", JSON.stringify(filters));
+          script.src = `${API}?${params}`;
+          document.head.append(script);
+        });
+      }
+      async function init() {
+        try {
+          await loadGcds();
+          [services, departments] = await Promise.all([fetchResource(SERVICE_ID), fetchResource(DEPT_ID)]);
+          departments = departments.filter(d => d.open_gov_ouvert && d.harmonized_name && services.some(s => s.owner_org === d.open_gov_ouvert))
+            .filter((d, i, all) => all.findIndex(x => x.open_gov_ouvert === d.open_gov_ouvert) === i)
+            .sort((a, b) => deptName(a).localeCompare(deptName(b), "en-CA"));
+          $("status").hidden = true; $("app").hidden = false; applyLanguage();
+        } catch (error) {
+          $("status").classList.add("error"); $("status-title").textContent = "Unable to load CKAN data.";
+          $("status-detail").textContent = `${error.message}. Check access to cdn.design-system.canada.ca and open.canada.ca, then reload the page.`;
+        }
+      }
+
+      let deptTimer, serviceTimer;
+      deptInput.addEventListener("focus", () => runDeptSearch(deptInput.value || ""));
+      deptInput.addEventListener("gcdsInput", e => { clearTimeout(deptTimer); deptTimer = setTimeout(() => runDeptSearch(readValue(e)), 100); });
+      deptInput.addEventListener("input", e => { clearTimeout(deptTimer); deptTimer = setTimeout(() => runDeptSearch(readValue(e)), 100); });
+      serviceInput.addEventListener("focus", () => currentDept && runServiceSearch(serviceInput.value || ""));
+      serviceInput.addEventListener("gcdsInput", e => { clearTimeout(serviceTimer); serviceTimer = setTimeout(() => runServiceSearch(readValue(e)), 100); });
+      serviceInput.addEventListener("input", e => { clearTimeout(serviceTimer); serviceTimer = setTimeout(() => runServiceSearch(readValue(e)), 100); });
+      keyboard(deptInput, $("dept-dropdown"), () => deptMatches, () => deptActive, v => deptActive = v, selectDept);
+      keyboard(serviceInput, $("service-dropdown"), () => serviceMatches, () => serviceActive, v => serviceActive = v, selectService);
+      document.addEventListener("click", e => { if (!e.composedPath().some(n => n.classList?.contains("search-wrapper"))) { closeDropdown($("dept-dropdown")); closeDropdown($("service-dropdown")); } });
+      langLink.addEventListener("click", e => { if (e.composedPath().some(n => n.tagName === "A")) { e.preventDefault(); lang = lang === "en" ? "fr" : "en"; applyLanguage(); } });
+      $("copy-btn").addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText($("r-service-id").textContent); $("copy-btn").textContent = strings[lang].copied; }
+        catch { $("copy-btn").textContent = strings[lang].copyFailed; }
+        setTimeout(() => $("copy-btn").textContent = strings[lang].copy, 1800);
+      });
+      init();
+    })();
+  </script>
+</body>
+</html>
