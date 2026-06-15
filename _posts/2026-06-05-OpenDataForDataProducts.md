@@ -5,7 +5,7 @@ category: "Data Produts"
 ---
 
 
- ### [GCDS Table Componet for Displaying Tables](https://patlittle.github.io/assets/CkanBackGcdsTableFront.html)
+### [GCDS Table Componet for Displaying Tables](https://patlittle.github.io/assets/CkanBackGcdsTableFront.html)
 
 ![GC Tables](/assets/images/GCDStables.png)
 
