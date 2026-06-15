@@ -5,8 +5,13 @@ category: "Data Produts"
 ---
 
 
- ![alt text](/assets/images/image.png)
+ > ![gcds table diagram](/assets/images/image.png)
+
 
  [GCDS Table Componet for Displaying Tables](https://patlittle.github.io/assets/CkanBackGcdsTableFront.html)
 
- 
+
+![Service Lookup](/assets/images/ServiceLook.png)
+
+[Service Inventory Lookup](https://patlittle.github.io/assets/service-inventory-lookup.html)
+
