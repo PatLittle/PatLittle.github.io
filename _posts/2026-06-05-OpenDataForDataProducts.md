@@ -15,3 +15,5 @@ category: "Data Produts"
 
 [Service Inventory Lookup](https://patlittle.github.io/assets/service-inventory-lookup.html)
 
+![Quality](PatLittle/PatLittle.github.io/assets/images/OpenDataQualityLens.png)
+![Qualitymore](PatLittle/PatLittle.github.io/assets/images/OpenDataQualityLens2.png)
