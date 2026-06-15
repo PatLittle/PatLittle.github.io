@@ -19,5 +19,5 @@ category: "Data Produts"
 
 
 ### [Quality Lens](https://patlittle.github.io/assets/OpenDataQualityLens.html)
-![Quality](PatLittle/PatLittle.github.io/assets/images/OpenDataQualityLens.png)
-![Qualitymore](PatLittle/PatLittle.github.io/assets/images/OpenDataQualityLens2.png)
+![Quality](/assets/images/OpenDataQualityLens.png)
+![Qualitymore](/assets/images/OpenDataQualityLens2.png)
