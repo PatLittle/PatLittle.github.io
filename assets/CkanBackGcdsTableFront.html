@@ -1,0 +1,311 @@
+
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Open Canada CKAN datastore explorer</title>
+
+    <link rel="stylesheet" href="https://cdn.design-system.canada.ca/@gcds-core/css-shortcuts@latest/dist/gcds-css-shortcuts.min.css">
+    <link rel="stylesheet" href="https://cdn.design-system.canada.ca/@gcds-core/components@latest/dist/gcds/gcds.css">
+    <script type="module" src="https://cdn.design-system.canada.ca/@gcds-core/components@latest/dist/gcds/gcds.esm.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+      }
+
+      main {
+        min-height: 60vh;
+      }
+
+      .page-content {
+        box-sizing: border-box;
+        display: block;
+        width: min(calc(100% - 3rem), var(--gcds-container-xl));
+        margin-inline: auto;
+        padding-block: 2.5rem 3rem;
+      }
+
+      section {
+        margin-top: 2.5rem;
+      }
+
+      .app-status {
+        max-width: 48rem;
+        margin-bottom: 0.75rem;
+        border-left: 0.375rem solid var(--gcds-color-blue-700);
+        padding: 0.75rem 1rem;
+        background: var(--gcds-color-blue-100);
+      }
+
+      .app-status[data-state="error"] {
+        border-left-color: var(--gcds-color-red-700);
+        background: var(--gcds-color-red-100);
+      }
+
+      .api-url {
+        display: flex;
+        gap: 0.375rem;
+        align-items: baseline;
+        max-width: 48rem;
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+      }
+
+      .api-url strong {
+        flex: none;
+      }
+
+      .api-url gcds-link {
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .resource-context {
+        margin-top: -0.75rem;
+        overflow-wrap: anywhere;
+      }
+
+      .table-help {
+        margin-block: 0 0.5rem;
+        color: var(--gcds-text-secondary);
+        font: var(--gcds-font-text-small);
+      }
+
+      .table-wrap {
+        width: min(
+          calc(100vw - max(1.5rem, (100vw - var(--gcds-container-xl)) / 2)),
+          90rem
+        );
+        max-width: none;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+      }
+
+      #results-table[data-view="records"] {
+        min-width: 135rem;
+      }
+    </style>
+  </head>
+  <body>
+    <gcds-header lang="en" skip-to-href="#main">
+      <gcds-breadcrumbs slot="breadcrumb">
+        <gcds-breadcrumbs-item href="https://open.canada.ca/en">Open Government</gcds-breadcrumbs-item>
+        <gcds-breadcrumbs-item href="https://open.canada.ca/data/en/dataset">Open Data</gcds-breadcrumbs-item>
+      </gcds-breadcrumbs>
+    </gcds-header>
+
+    <main id="main">
+      <gcds-container class="page-content">
+        <gcds-heading tag="h1">CKAN datastore explorer</gcds-heading>
+        <gcds-text>
+          This one-page app uses the Open Canada CKAN datastore API and the GC Design System table component.
+          Select a datastore resource to inspect its records.
+        </gcds-text>
+
+        <div id="controls" class="mb-300" hidden>
+          <gcds-button id="back-button" button-role="secondary" size="small">
+            Back to resources
+          </gcds-button>
+        </div>
+
+        <section aria-labelledby="table-heading">
+          <gcds-heading id="table-heading" tag="h2">Recent datastore resources</gcds-heading>
+          <p id="resource-context" class="resource-context" hidden>
+            <strong>Resource ID:</strong> <code id="resource-id"></code>
+          </p>
+          <p id="status" class="app-status" role="status" aria-live="polite">Loading recent datastore resources...</p>
+          <p class="api-url">
+            <strong>API request:</strong>
+            <gcds-link id="api-link" external target="_blank"></gcds-link>
+          </p>
+
+          <p id="table-help" class="table-help" hidden>
+            Scroll horizontally to view all columns.
+          </p>
+          <div class="table-wrap">
+            <gcds-table id="results-table" sort="true" pagination="true" filter="true">
+              <template slot="cell:actions">
+                <gcds-button
+                  button-role="secondary"
+                  size="small"
+                  onclick="window.loadResource(this.row.id)"
+                >
+                  View records
+                </gcds-button>
+              </template>
+            </gcds-table>
+          </div>
+        </section>
+      </gcds-container>
+    </main>
+
+    <gcds-footer
+      display="compact"
+      lang="en"
+      sub-links='{ "Open Government": "https://open.canada.ca/en", "GC Design System": "https://design-system.canada.ca/en/" }'
+    ></gcds-footer>
+
+    <script>
+      const API_BASE = 'https://open.canada.ca/data/en/api/3/action/datastore_search';
+      const INDEX_RESOURCE_ID = '3c911562-c541-463f-8cd4-490182cd57f9';
+
+      const indexParams = new URLSearchParams({
+        resource_id: INDEX_RESOURCE_ID,
+        filters: JSON.stringify({ datastore_active: 'true' }),
+        sort: 'metadata_modified desc',
+        limit: '20',
+      });
+
+      const indexUrl = `${API_BASE}?${indexParams}`;
+      const table = document.querySelector('#results-table');
+      const status = document.querySelector('#status');
+      const heading = document.querySelector('#table-heading');
+      const apiLink = document.querySelector('#api-link');
+      const controls = document.querySelector('#controls');
+      const backButton = document.querySelector('#back-button');
+      const resourceContext = document.querySelector('#resource-context');
+      const resourceIdText = document.querySelector('#resource-id');
+      const tableHelp = document.querySelector('#table-help');
+
+      const indexColumns = [
+        { field: 'name', header: 'Resource name', rowHeader: true },
+        { field: 'format', header: 'Format' },
+        { field: 'language', header: 'Language' },
+        { field: 'metadata_modified', header: 'Metadata modified' },
+        { field: 'id', header: 'Resource ID' },
+        { field: 'actions', header: 'Actions', slotted: true },
+      ];
+
+      function setStatus(message, state = 'ready') {
+        status.textContent = message;
+        status.dataset.state = state;
+      }
+
+      function showRequest(url) {
+        apiLink.href = url;
+        apiLink.textContent = url;
+      }
+
+      function normalizeRecords(records, fields) {
+        return records.map(record => {
+          const normalized = {};
+
+          for (const { id } of fields) {
+            const value = record[id];
+            normalized[id] =
+              value === null || value === undefined || value === '' ? '—' : String(value);
+          }
+
+          return normalized;
+        });
+      }
+
+      async function requestDatastore(url) {
+        return new Promise((resolve, reject) => {
+          const callbackName = `ckanCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+          const script = document.createElement('script');
+          const requestUrl = new URL(url);
+          let timeout;
+
+          function cleanup() {
+            clearTimeout(timeout);
+            script.remove();
+            delete window[callbackName];
+          }
+
+          window[callbackName] = payload => {
+            cleanup();
+
+            if (!payload.success) {
+              reject(new Error(payload.error?.message || 'The datastore API request was not successful.'));
+              return;
+            }
+
+            resolve(payload.result);
+          };
+
+          requestUrl.searchParams.set('callback', callbackName);
+          script.src = requestUrl;
+          script.onerror = () => {
+            cleanup();
+            reject(new Error('The datastore API request could not be loaded.'));
+          };
+          timeout = setTimeout(() => {
+            cleanup();
+            reject(new Error('The datastore API request timed out.'));
+          }, 30000);
+
+          document.head.append(script);
+        });
+      }
+
+      async function loadIndex() {
+        heading.textContent = 'Recent datastore resources';
+        controls.hidden = true;
+        resourceContext.hidden = true;
+        tableHelp.hidden = true;
+        table.dataset.view = 'resources';
+        table.hidden = true;
+        setStatus('Loading recent datastore resources...');
+        showRequest(indexUrl);
+
+        try {
+          const result = await requestDatastore(indexUrl);
+          table.columns = indexColumns;
+          table.data = result.records.map(record => ({ ...record, actions: '' }));
+          table.hidden = false;
+          setStatus(`Showing ${result.records.length} recently modified datastore resources.`);
+        } catch (error) {
+          setStatus(`Unable to load datastore resources. ${error.message}`, 'error');
+        }
+      }
+
+      window.loadResource = async resourceId => {
+        const params = new URLSearchParams({ resource_id: resourceId });
+        const url = `${API_BASE}?${params}`;
+
+        heading.textContent = 'Resource records';
+        controls.hidden = false;
+        resourceContext.hidden = false;
+        resourceIdText.textContent = resourceId;
+        tableHelp.hidden = false;
+        table.dataset.view = 'records';
+        table.hidden = true;
+        setStatus('Loading resource records...');
+        showRequest(url);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        try {
+          const result = await requestDatastore(url);
+          const fields = result.fields || [];
+
+          table.columns = fields.map(({ id }) => ({
+            field: id,
+            header: id,
+            rowHeader: id === '_id',
+          }));
+          table.data = normalizeRecords(result.records || [], fields);
+          table.hidden = false;
+          setStatus(
+            `Showing ${result.records.length} of ${result.total.toLocaleString()} records returned by the API.`,
+          );
+        } catch (error) {
+          setStatus(`Unable to load resource ${resourceId}. ${error.message}`, 'error');
+        }
+      };
+
+      async function initialize() {
+        await customElements.whenDefined('gcds-table');
+        backButton.addEventListener('click', loadIndex);
+        await loadIndex();
+      }
+
+      initialize();
+    </script>
+  </body>
+</html>
