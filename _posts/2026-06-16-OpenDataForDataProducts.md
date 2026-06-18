@@ -1,7 +1,6 @@
 ---
 title: "Leveraging Open Data for Data Products across GC Web"
 category: "Data Produts"
-
 ---
 
 ## Using Open Government Portal APIs
@@ -37,12 +36,12 @@ In practice, this means a web page can call the metadata endpoint to identify a 
 
 [CKAN API documentation↗️](https://docs.ckan.org/en/latest/api/)
 
-## Previous Technical Blocker
+## What's New?
 These demos below retrieve data directly from open.canada.ca using browser-based API calls.
 
-However, Open.Canada.ca like most Government of Canada APIs did not allow cross-origin requests from `.gc.ca` or `canada.ca` websites. This is due to browser security controls known as Cross-Origin Resource Sharing (CORS).
+However until recently, Open.Canada.ca like most Government of Canada APIs did not allow cross-origin requests, even from `.gc.ca` or `canada.ca` websites. This is due to browser security controls known as Cross-Origin Resource Sharing (CORS).
 
-When a web page hosted on <kbd>domain X</kbd> makes a request to get data from <kbd>domain Y</kbd>, a users browser will block the request, unless the server at <kbd>domain Y</kbd> adds an extra piece of infomation (header) saying that it is cool to shares resources, with either specific domains, or all domains.
+When a web page hosted on <kbd>domain X</kbd> makes a request to get data from <kbd>domain Y</kbd>, a users browser will block the request, unless the server at <kbd>domain Y</kbd> adds an extra piece of infomation (header) agreeing to share it's resources with other websites, either on specific domains, or all domains.
 
 ### How It Can Be Worked Around
 
@@ -81,6 +80,17 @@ Features demonstrated:
 * **Progressive context:** the interface begins with a resource list, then adds a back button, resource ID, record count, and horizontal-scroll hint only when a specific resource is opened.
 
 ```mermaid
+---
+config:
+  theme: 'base'
+  themeVariables:
+    primaryColor: '#BB2528'
+    primaryTextColor: '#fff'
+    primaryBorderColor: '#7C0000'
+    lineColor: '#F8B229'
+    secondaryColor: '#006100'
+    tertiaryColor: '#fff'
+---
 erDiagram
     DATASTORE_RESOURCE_INDEX ||--o{ DATASTORE_RESOURCE : "lists active resources"
     DATASTORE_RESOURCE ||--o{ DATASTORE_FIELD : "returns fields"
@@ -151,6 +161,17 @@ The workflow starts with a department search. After a department is selected, th
 * **Reported URL health checks:** service, standard, and performance-result URLs are checked in the browser where possible, with clear handling for missing, invalid, failed, or CORS-blocked links.
 
 ```mermaid
+---
+config:
+  theme: 'base'
+  themeVariables:
+    primaryColor: '#BB2528'
+    primaryTextColor: '#fff'
+    primaryBorderColor: '#7C0000'
+    lineColor: '#F8B229'
+    secondaryColor: '#006100'
+    tertiaryColor: '#fff'
+---
 erDiagram
     DEPARTMENT ||--o{ SERVICE_PERIOD : "owner org filters services"
     SERVICE_PERIOD ||--o{ PERFORMANCE_STANDARD : "service_id links performance"
@@ -238,6 +259,17 @@ The app then retrieves the package metadata, schema, resource details, DataStore
 * **Built-in help content:** the Help view explains the scoring model, FAIR concepts, exact methodology, and a glossary in plain language for data stewards and content teams.
 
 ```mermaid
+---
+config:
+  theme: 'base'
+  themeVariables:
+    primaryColor: '#BB2528'
+    primaryTextColor: '#fff'
+    primaryBorderColor: '#7C0000'
+    lineColor: '#F8B229'
+    secondaryColor: '#006100'
+    tertiaryColor: '#fff'
+---
 erDiagram
     PACKAGE ||--o{ RESOURCE : "package_show resources"
     PACKAGE ||--|| SCHEMA : "validated against"
