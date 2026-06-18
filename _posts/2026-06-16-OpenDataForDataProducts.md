@@ -47,8 +47,9 @@ When a web page hosted on <kbd>domain X</kbd> makes a request to get data from <
 
 This doesn't get enforced the same way outside browsers, like from a program installed by a user, or by applications or simple scripts running on a server.
 
->[!NOTE]
->This is inconvenient for Web Content Developers, as runing servers in the backend to make these requests is complicated and slow to get setup, in the GC working environment.
+
+>This is inconvenient for Web Content Developers working in the GC Context.
+ 
 
 
 ## Demos
@@ -71,7 +72,7 @@ The page starts with an index of the 20 most recently modified Open Government P
 
 Each row includes the resource name, format, language, last modified date, resource ID, and a **View records** action. When a user selects a resource, the same table is repopulated with the actual records and fields returned by the DataStore API.
 
-Features demonstrated:
+#### Features demonstrated:
 
 * **Live DataStore retrieval:** the page calls `datastore_search` to list active tabular resources and then calls the same endpoint again with a selected `resource_id` to retrieve records.
 
@@ -87,7 +88,7 @@ config:
     primaryColor: '#BB2528'
     primaryTextColor: '#fff'
     primaryBorderColor: '#7C0000'
-    lineColor: '#F8B229'
+    lineColor: 'rgb(248, 41, 176)'
     secondaryColor: '#006100'
     tertiaryColor: '#fff'
 ---
@@ -163,7 +164,14 @@ The workflow starts with a department search. After a department is selected, th
 ```mermaid
 ---
 config:
-  theme: 'neutral'
+  theme: 'dark'
+  themeVariables:
+    primaryColor: '#BB2528'
+    primaryTextColor: '#fff'
+    primaryBorderColor: '#7C0000'
+    lineColor: 'rgb(248, 41, 176)'
+    secondaryColor: '#006100'
+    tertiaryColor: '#fff'
 ---
 erDiagram
     DEPARTMENT ||--o{ SERVICE_PERIOD : "owner org filters services"
@@ -254,7 +262,14 @@ The app then retrieves the package metadata, schema, resource details, DataStore
 ```mermaid
 ---
 config:
-  theme: 'forest'
+  theme: 'dark'
+  themeVariables:
+    primaryColor: '#BB2528'
+    primaryTextColor: '#fff'
+    primaryBorderColor: '#7C0000'
+    lineColor: 'rgb(248, 41, 176)'
+    secondaryColor: '#006100'
+    tertiaryColor: '#fff'
 ---
 erDiagram
     PACKAGE ||--o{ RESOURCE : "package_show resources"
