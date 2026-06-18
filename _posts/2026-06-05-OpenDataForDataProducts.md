@@ -4,6 +4,29 @@ category: "Data Produts"
 
 ---
 
+## Using Open Government Portal APIs
+The Open Government Portal provides two main APIs that departments can use to bring content from `open.canada.ca` onto other web platforms.
+
+**Metadata API**
+The Metadata API contains information about datasets such as the title, description, and date last updated.
+
+**DataStore API**
+The DataStore API provides access to the actual tabular data for datasets that were uploaded directly to the system and passed validation checks for structural consistency.
+
+### CKAN API docs
+These APIs are part of CKAN, the open source data platform used by the Open Government Portal. The CKAN Action API exposes methods such as `package_show`, `resource_show`, and `datastore_search` for retrieving metadata and table records in JSON. In practice, this means a web page can call the metadata endpoint to identify a resource, then call the DataStore endpoint to render the live records directly.
+
+[CKAN API documentation↗️](https://docs.ckan.org/en/latest/api/)
+
+### Atom Feeds
+Each organization also automatically has an Atom feed of recent updates or new publications.
+
+`https://open.canada.ca/data/feeds/organization/{organization_name}.atom`
+Example:
+
+`https://open.canada.ca/data/feeds/organization/tbs-sct.atom`
+
+## Demos
 
 ### [GCDS Table Componet for Displaying Tables](https://patlittle.github.io/assets/CkanBackGcdsTableFront.html)
 
