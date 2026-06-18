@@ -82,7 +82,7 @@ Features demonstrated:
 ```mermaid
 ---
 config:
-  theme: 'base'
+  theme: 'dark'
   themeVariables:
     primaryColor: '#BB2528'
     primaryTextColor: '#fff'
@@ -163,14 +163,7 @@ The workflow starts with a department search. After a department is selected, th
 ```mermaid
 ---
 config:
-  theme: 'base'
-  themeVariables:
-    primaryColor: '#BB2528'
-    primaryTextColor: '#fff'
-    primaryBorderColor: '#7C0000'
-    lineColor: '#F8B229'
-    secondaryColor: '#006100'
-    tertiaryColor: '#fff'
+  theme: 'neutral'
 ---
 erDiagram
     DEPARTMENT ||--o{ SERVICE_PERIOD : "owner org filters services"
@@ -261,14 +254,7 @@ The app then retrieves the package metadata, schema, resource details, DataStore
 ```mermaid
 ---
 config:
-  theme: 'base'
-  themeVariables:
-    primaryColor: '#BB2528'
-    primaryTextColor: '#fff'
-    primaryBorderColor: '#7C0000'
-    lineColor: '#F8B229'
-    secondaryColor: '#006100'
-    tertiaryColor: '#fff'
+  theme: 'forest'
 ---
 erDiagram
     PACKAGE ||--o{ RESOURCE : "package_show resources"
