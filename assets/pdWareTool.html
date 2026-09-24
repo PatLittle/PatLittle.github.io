@@ -1,0 +1,1700 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="Inspect and query PD Warehouse CSV files directly in the browser.">
+  <title>PD Warehouse Change Explorer</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307181f'/%3E%3Cpath d='M14 18h36v9H14zm0 13h36v9H14zm0 13h23v7H14z' fill='%234ed6ba'/%3E%3Ccircle cx='47' cy='47' r='9' fill='%23ffca5c'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@6.5.0/dist/css/tabulator.min.css">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #061116;
+      --panel: #0b1c23;
+      --panel-2: #10262e;
+      --panel-3: #15313a;
+      --line: #24434c;
+      --line-soft: #19343c;
+      --text: #edf8f6;
+      --muted: #98b2b7;
+      --teal: #4ed6ba;
+      --teal-2: #24b69c;
+      --amber: #ffca5c;
+      --red: #ff7e78;
+      --blue: #8dc8ff;
+      --shadow: 0 18px 60px rgba(0, 0, 0, .28);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 85% -10%, rgba(78, 214, 186, .10), transparent 32%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .5; }
+
+    .app-shell {
+      height: 100%;
+      display: grid;
+      grid-template-rows: 66px minmax(0, 1fr);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(6, 17, 22, .94);
+      backdrop-filter: blur(14px);
+      position: relative;
+      z-index: 20;
+    }
+
+    .brand {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #38606b;
+      border-radius: 10px;
+      background: linear-gradient(145deg, #17343d, #0c2027);
+      color: var(--teal);
+      font-weight: 800;
+      letter-spacing: -.06em;
+      box-shadow: inset 0 1px rgba(255,255,255,.06);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.2;
+      letter-spacing: .01em;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .top-status {
+      margin-left: auto;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .engine-state,
+    .stopwatch {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      white-space: nowrap;
+    }
+
+    .state-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #5b7075;
+      box-shadow: 0 0 0 4px rgba(91,112,117,.12);
+    }
+
+    .state-dot.ready { background: var(--teal); box-shadow: 0 0 0 4px rgba(78,214,186,.13); }
+    .state-dot.busy { background: var(--amber); box-shadow: 0 0 0 4px rgba(255,202,92,.13); animation: pulse 1.2s infinite; }
+    .state-dot.error { background: var(--red); box-shadow: 0 0 0 4px rgba(255,126,120,.13); }
+
+    @keyframes pulse { 50% { transform: scale(.72); opacity: .7; } }
+
+    .engine-copy small,
+    .stopwatch small {
+      display: block;
+      color: var(--muted);
+      font-size: .68rem;
+      line-height: 1;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+    }
+
+    .engine-copy strong,
+    .stopwatch strong {
+      display: block;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: .78rem;
+      font-weight: 650;
+    }
+
+    .stopwatch strong {
+      min-width: 77px;
+      color: var(--amber);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .04em;
+      text-align: right;
+    }
+
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 370px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      border-right: 1px solid var(--line);
+      background: #08171d;
+    }
+
+    .connection {
+      padding: 15px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-title h2,
+    .results-title h2 {
+      margin: 0;
+      font-size: .82rem;
+      font-weight: 750;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 2px 8px;
+      border: 1px solid #31505a;
+      border-radius: 999px;
+      background: #10252d;
+      color: #b8d0d3;
+      font-size: .72rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .field { display: grid; gap: 6px; margin-top: 10px; }
+
+    label,
+    .field-label {
+      color: #c1d5d6;
+      font-size: .78rem;
+      font-weight: 650;
+    }
+
+    .input,
+    select {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid #2a4b55;
+      border-radius: 8px;
+      outline: none;
+      background: #07161c;
+      color: var(--text);
+      padding: 8px 10px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    textarea.input {
+      min-height: 112px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .73rem;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    textarea.input.masked:not(:placeholder-shown) {
+      -webkit-text-security: disc;
+      letter-spacing: .08em;
+    }
+
+    .input:focus,
+    select:focus {
+      border-color: var(--teal-2);
+      box-shadow: 0 0 0 3px rgba(78, 214, 186, .11);
+    }
+
+    .secret-wrap { position: relative; }
+    .secret-wrap .input { padding-right: 10px; }
+
+    .text-button {
+      border: 0;
+      background: transparent;
+      color: var(--blue);
+      font-size: .73rem;
+      font-weight: 700;
+      padding: 5px;
+    }
+
+    .credential-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+    .primary,
+    .secondary {
+      min-height: 39px;
+      border-radius: 8px;
+      padding: 0 13px;
+      font-weight: 750;
+      border: 1px solid transparent;
+    }
+
+    .primary {
+      color: #041511;
+      background: var(--teal);
+      border-color: #78e8d1;
+      box-shadow: 0 6px 20px rgba(36, 182, 156, .15);
+    }
+
+    .primary:hover:not(:disabled) { background: #67e0c7; }
+
+    .secondary {
+      color: #d8e9e8;
+      background: #112830;
+      border-color: #31505a;
+    }
+
+    .secondary:hover:not(:disabled) { background: #18353e; }
+
+    .connect-row { display: flex; gap: 8px; margin-top: 12px; }
+    .connect-row .primary { flex: 1; }
+
+    .privacy-note {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: .72rem;
+      line-height: 1.45;
+    }
+
+    .file-browser {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+    }
+
+    .file-browser-head { padding: 14px 15px 8px; }
+
+    .scan-progress {
+      min-height: 31px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 15px 9px;
+      color: var(--muted);
+      font-size: .72rem;
+    }
+
+    .progress-track {
+      height: 5px;
+      flex: 1;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #142b33;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--teal-2), var(--teal));
+      transition: width .2s ease;
+    }
+
+    .file-list {
+      min-height: 0;
+      overflow: auto;
+      padding: 0 8px 14px;
+      scrollbar-color: #35535b transparent;
+    }
+
+    .empty-files {
+      margin: 18px 8px;
+      padding: 18px;
+      border: 1px dashed #2a4851;
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .file-card {
+      margin-top: 5px;
+      overflow: hidden;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: #0b1b21;
+    }
+
+    .file-card.selected {
+      border-color: #35796d;
+      box-shadow: inset 3px 0 var(--teal);
+      background: #10262d;
+    }
+
+    .file-card.schema-error { border-color: rgba(255,126,120,.25); }
+
+    .file-head {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 17px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 7px;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      padding: 10px 10px;
+      text-align: left;
+    }
+
+    .file-head:hover { background: rgba(255,255,255,.025); }
+
+    .chevron {
+      color: #769096;
+      transform: rotate(-90deg);
+      transition: transform .15s;
+      font-size: .72rem;
+    }
+
+    .file-card.expanded .chevron { transform: rotate(0); }
+
+    .file-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .76rem;
+    }
+
+    .file-meta { color: var(--muted); font-size: .66rem; }
+
+    .schema {
+      display: none;
+      border-top: 1px solid var(--line-soft);
+      padding: 6px 9px 9px 33px;
+    }
+
+    .file-card.expanded .schema { display: block; }
+
+    .schema-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(36,67,76,.45);
+      font-size: .7rem;
+    }
+
+    .schema-row:last-child { border-bottom: 0; }
+    .column-name { overflow-wrap: anywhere; color: #d8e7e6; }
+    .column-type { color: #85d9c8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .schema-note { color: var(--muted); font-size: .7rem; line-height: 1.45; }
+    .schema-note.error { color: #ffaaa6; }
+
+    .main {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      background: #08151a;
+    }
+
+    .query-panel {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .selected-source {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: .75rem;
+      margin-bottom: 11px;
+    }
+
+    .selected-source strong {
+      color: var(--teal);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .query-grid {
+      display: grid;
+      grid-template-columns: minmax(180px, 1.35fr) minmax(200px, 1fr) minmax(150px, .9fr) minmax(150px, .9fr) 110px auto;
+      align-items: end;
+      gap: 10px;
+    }
+
+    .query-grid .field { margin: 0; }
+
+    .checks {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 0 10px;
+      border: 1px solid #2a4b55;
+      border-radius: 8px;
+      background: #07161c;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text);
+      font-size: .8rem;
+      font-weight: 650;
+    }
+
+    .check input { accent-color: var(--teal-2); width: 16px; height: 16px; }
+
+    .query-actions { display: flex; gap: 8px; }
+    .query-actions .primary { min-width: 112px; }
+
+    .message {
+      margin: 11px 0 0;
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 10px;
+      border: 1px solid #29464f;
+      border-radius: 8px;
+      background: #0c2027;
+      color: #b6cbcd;
+      font-size: .76rem;
+      line-height: 1.4;
+    }
+
+    .message.error { border-color: rgba(255,126,120,.45); background: rgba(93,30,31,.28); color: #ffc1bd; }
+    .message.success { border-color: rgba(78,214,186,.4); color: #b8f1e5; }
+
+    .results-bar {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--line);
+      background: #0a191f;
+    }
+
+    .results-title { display: flex; align-items: center; gap: 10px; }
+    .stats { display: flex; gap: 8px; flex-wrap: wrap; }
+    .results-actions { margin-left: auto; display: flex; gap: 7px; }
+    .results-actions .secondary { min-height: 32px; padding: 0 10px; font-size: .75rem; }
+
+    .grid-wrap {
+      min-height: 0;
+      position: relative;
+      padding: 0;
+      overflow: hidden;
+      background: #071318;
+    }
+
+    #data-grid { height: 100%; }
+
+    .grid-empty {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      pointer-events: none;
+    }
+
+    .grid-empty-card {
+      max-width: 420px;
+      padding: 24px;
+      border: 1px dashed #2b4b54;
+      border-radius: 12px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.55;
+    }
+
+    .grid-empty-card strong { color: var(--text); display: block; margin-bottom: 5px; }
+
+    .alert-dialog {
+      width: min(520px, calc(100vw - 32px));
+      padding: 0;
+      border: 1px solid #3b5f69;
+      border-radius: 14px;
+      background: #0b1c23;
+      color: var(--text);
+      box-shadow: 0 24px 90px rgba(0, 0, 0, .55);
+    }
+
+    .alert-dialog::backdrop { background: rgba(1, 8, 11, .72); backdrop-filter: blur(4px); }
+    .alert-dialog[data-kind="error"] { border-color: rgba(255, 126, 120, .65); }
+    .alert-dialog[data-kind="warning"] { border-color: rgba(255, 202, 92, .65); }
+
+    .alert-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #10262e;
+    }
+
+    .alert-icon {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: rgba(255, 126, 120, .14);
+      color: var(--red);
+      font-weight: 850;
+    }
+
+    .alert-dialog[data-kind="warning"] .alert-icon { background: rgba(255, 202, 92, .14); color: var(--amber); }
+    .alert-head h2 { margin: 0; font-size: 1rem; }
+    .alert-body { padding: 17px 18px 10px; color: #c5d8d9; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .alert-actions { display: flex; justify-content: flex-end; padding: 10px 18px 18px; }
+
+    .tabulator {
+      border: 0;
+      background: #071318;
+      color: #deeceb;
+      font-size: .78rem;
+    }
+
+    .tabulator .tabulator-header {
+      border-bottom: 1px solid #31505a;
+      background: #10262e;
+      color: #e9f5f3;
+    }
+
+    .tabulator .tabulator-header .tabulator-col { background: #10262e; border-right-color: #24434c; }
+    .tabulator .tabulator-header .tabulator-col.tabulator-sortable:hover { background: #17343d; }
+    .tabulator .tabulator-header .tabulator-col .tabulator-col-content { padding: 9px 8px; }
+    .tabulator .tabulator-header-filter input { background: #07161c; color: var(--text); border: 1px solid #31505a; border-radius: 5px; padding: 5px; }
+    .tabulator-row { background: #08171d; border-bottom-color: #173139; min-height: 31px; }
+    .tabulator-row:nth-child(even) { background: #0b1c22; }
+    .tabulator-row:hover { background: #123039 !important; }
+    .tabulator-row .tabulator-cell { border-right-color: #173139; padding: 7px 8px; }
+    .tabulator .tabulator-footer { background: #10262e; border-top-color: #31505a; color: #c9dcdd; }
+    .tabulator .tabulator-footer .tabulator-page { color: #c9dcdd; border-color: #31505a; background: #0b1c23; }
+    .tabulator .tabulator-footer .tabulator-page.active { color: #061411; background: var(--teal); border-color: var(--teal); }
+
+    @media (max-width: 1180px) {
+      .workspace { grid-template-columns: 320px minmax(0, 1fr); }
+      .query-grid { grid-template-columns: repeat(3, minmax(150px, 1fr)); }
+      .query-actions { grid-column: span 3; }
+    }
+
+    @media (max-width: 820px) {
+      body { overflow: auto; }
+      .app-shell { min-height: 100%; height: auto; grid-template-rows: auto auto; }
+      .topbar { min-height: 66px; flex-wrap: wrap; padding: 10px 14px; }
+      .brand p { display: none; }
+      .top-status { width: 100%; justify-content: flex-start; margin-left: 50px; }
+      .engine-state { flex: 1; }
+      .workspace { display: block; }
+      .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+      .file-list { max-height: 420px; }
+      .main { min-height: 720px; grid-template-rows: auto auto 520px; }
+      .query-grid { grid-template-columns: 1fr 1fr; }
+      .query-actions { grid-column: span 2; }
+      .query-actions .primary { flex: 1; }
+      .results-bar { align-items: flex-start; padding: 10px 14px; flex-wrap: wrap; }
+      .results-actions { margin-left: 0; width: 100%; }
+    }
+
+    @media (max-width: 520px) {
+      .query-grid { grid-template-columns: 1fr; }
+      .query-actions { grid-column: auto; }
+      .top-status { margin-left: 0; }
+      .stopwatch { flex: 1; justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">PD</div>
+        <div>
+          <h1>PD Warehouse Change Explorer</h1>
+          <p>Azure Blob schemas via Netlify proxy and local DuckDB filtering</p>
+        </div>
+      </div>
+      <div class="top-status" aria-live="polite">
+        <div class="engine-state">
+          <span id="state-dot" class="state-dot"></span>
+          <div class="engine-copy">
+            <small>Engine</small>
+            <strong id="engine-label">Not connected</strong>
+          </div>
+        </div>
+        <div class="stopwatch">
+          <div>
+            <small id="timer-label">Stopwatch</small>
+            <strong id="timer-value">00:00.000</strong>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar" aria-label="CSV sources">
+        <section class="connection">
+          <div class="section-title">
+            <h2>Azure connection</h2>
+            <span class="badge">Netlify proxy</span>
+          </div>
+          <div class="field">
+            <div class="credential-label">
+              <label for="credential-block">Connection block</label>
+              <button id="toggle-secret" class="text-button" type="button" aria-label="Mask connection block">Mask</button>
+            </div>
+            <div class="secret-wrap">
+              <textarea id="credential-block" class="input" rows="4" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder='account_url="https://opencanada.blob.core.windows.net"&#10;container_name="pd-warehouse"&#10;credential="sv=...&amp;sp=rl&amp;sig=..."'></textarea>
+            </div>
+          </div>
+          <div class="connect-row">
+            <button id="connect-button" class="primary" type="button">Connect &amp; inspect</button>
+            <button id="disconnect-button" class="secondary" type="button" disabled>Clear</button>
+          </div>
+          <p class="privacy-note">Paste all three assignments exactly as shown. Requests are routed through your Netlify CORS proxy, which receives the SAS-bearing Azure URL. Because the proxy does not preserve byte-range responses, schema inspection may download complete CSVs. The app keeps credentials only in this tab’s memory and does not save them in the Gist or browser storage.</p>
+        </section>
+
+        <section class="file-browser">
+          <div class="file-browser-head">
+            <div class="section-title">
+              <h2>CSV files</h2>
+              <span id="file-count" class="badge">0</span>
+            </div>
+            <input id="file-search" class="input" type="search" placeholder="Filter filenames or columns" disabled>
+          </div>
+          <div class="scan-progress">
+            <span id="scan-label">Connect to list files</span>
+            <div class="progress-track" aria-hidden="true"><div id="progress-bar" class="progress-bar"></div></div>
+          </div>
+          <div id="file-list" class="file-list">
+            <div class="empty-files">Paste the connection block to list every CSV and inspect its columns and data types.</div>
+          </div>
+        </section>
+      </aside>
+
+      <main class="main">
+        <section class="query-panel" aria-label="Query controls">
+          <div class="selected-source">Selected source: <strong id="selected-file">None</strong></div>
+          <div class="query-grid">
+            <div class="field">
+              <label for="owner-org">owner_org</label>
+              <input id="owner-org" class="input" type="text" placeholder="e.g. fin" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field">
+              <span class="field-label">log_activity</span>
+              <div class="checks">
+                <label class="check"><input class="log-option" type="checkbox" value="A" checked> A</label>
+                <label class="check"><input class="log-option" type="checkbox" value="C" checked> C</label>
+                <label class="check"><input class="log-option" type="checkbox" value="D" checked> D</label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="start-date">Start date</label>
+              <input id="start-date" class="input" type="date">
+            </div>
+            <div class="field">
+              <label for="end-date">End date</label>
+              <input id="end-date" class="input" type="date">
+            </div>
+            <div class="field">
+              <label for="row-limit">Row limit</label>
+              <select id="row-limit">
+                <option value="250">250</option>
+                <option value="500" selected>500</option>
+                <option value="1000">1,000</option>
+                <option value="2500">2,500</option>
+                <option value="5000">5,000</option>
+              </select>
+            </div>
+            <div class="query-actions">
+              <button id="run-query" class="primary" type="button" disabled>Run query</button>
+              <button id="clear-cache" class="secondary" type="button" disabled>Reset cache</button>
+            </div>
+          </div>
+          <div id="message" class="message">Connect to Azure, then select a CSV from the left panel.</div>
+        </section>
+
+        <section class="results-bar">
+          <div class="results-title"><h2>Results</h2></div>
+          <div class="stats">
+            <span id="shown-stat" class="badge">0 shown</span>
+            <span id="cached-stat" class="badge">0 cached</span>
+            <span id="range-stat" class="badge">Date range —</span>
+          </div>
+          <div class="results-actions">
+            <button id="export-csv" class="secondary" type="button" disabled>Export CSV</button>
+          </div>
+        </section>
+
+        <section class="grid-wrap" aria-label="Query results">
+          <div id="data-grid"></div>
+          <div id="grid-empty" class="grid-empty">
+            <div class="grid-empty-card">
+              <strong>No rows loaded</strong>
+              Select a CSV, complete the filters, and run a query. Column filters and sorting will appear in the grid.
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="app-alert" class="alert-dialog" data-kind="error" aria-labelledby="alert-title">
+    <div class="alert-head">
+      <span class="alert-icon" aria-hidden="true">!</span>
+      <h2 id="alert-title">Connection problem</h2>
+    </div>
+    <div id="alert-message" class="alert-body"></div>
+    <div class="alert-actions">
+      <button id="alert-close" class="primary" type="button">OK</button>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@6.5.0/dist/js/tabulator.min.js"></script>
+  <script>
+    window.__pdAppBooted = false;
+    window.setTimeout(function () {
+      if (!window.__pdAppBooted) {
+        window.alert("The application scripts could not start. Check your internet connection, content blocking settings, or CDN access, then reload the page.");
+      }
+    }, 5000);
+  </script>
+  <script type="module">
+    import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.33.1-dev57.0/+esm";
+
+    const CORS_PROXY = "https://lovely-nasturtium-97f019.netlify.app/cors-proxy?url=";
+
+    const $ = (selector) => document.querySelector(selector);
+    const els = {
+      credentialBlock: $("#credential-block"),
+      toggleSecret: $("#toggle-secret"),
+      connect: $("#connect-button"),
+      disconnect: $("#disconnect-button"),
+      stateDot: $("#state-dot"),
+      engineLabel: $("#engine-label"),
+      timerLabel: $("#timer-label"),
+      timerValue: $("#timer-value"),
+      fileCount: $("#file-count"),
+      fileSearch: $("#file-search"),
+      scanLabel: $("#scan-label"),
+      progressBar: $("#progress-bar"),
+      fileList: $("#file-list"),
+      selectedFile: $("#selected-file"),
+      ownerOrg: $("#owner-org"),
+      startDate: $("#start-date"),
+      endDate: $("#end-date"),
+      rowLimit: $("#row-limit"),
+      runQuery: $("#run-query"),
+      clearCache: $("#clear-cache"),
+      message: $("#message"),
+      shownStat: $("#shown-stat"),
+      cachedStat: $("#cached-stat"),
+      rangeStat: $("#range-stat"),
+      exportCsv: $("#export-csv"),
+      gridEmpty: $("#grid-empty"),
+      alertDialog: $("#app-alert"),
+      alertTitle: $("#alert-title"),
+      alertMessage: $("#alert-message"),
+      alertClose: $("#alert-close"),
+    };
+
+    const app = {
+      accountUrl: "",
+      container: "",
+      sas: "",
+      files: [],
+      schemas: new Map(),
+      expanded: new Set(),
+      selected: null,
+      db: null,
+      conn: null,
+      table: null,
+      cacheKey: null,
+      cachedRows: 0,
+      cachedRange: null,
+      busy: false,
+      timerId: null,
+      timerStart: 0,
+      virtualFileSequence: 0,
+    };
+
+    const today = new Date();
+    const oneYearAgo = new Date(today);
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    els.endDate.value = dateInputValue(today);
+    els.startDate.value = dateInputValue(oneYearAgo);
+
+    function dateInputValue(value) {
+      const y = value.getFullYear();
+      const m = String(value.getMonth() + 1).padStart(2, "0");
+      const d = String(value.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatDuration(ms) {
+      const minutes = Math.floor(ms / 60000);
+      const seconds = Math.floor((ms % 60000) / 1000);
+      const millis = Math.floor(ms % 1000);
+      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(millis).padStart(3, "0")}`;
+    }
+
+    function startStopwatch(label) {
+      stopStopwatch(false);
+      app.timerStart = performance.now();
+      els.timerLabel.textContent = label;
+      els.timerValue.textContent = "00:00.000";
+      app.timerId = setInterval(() => {
+        els.timerValue.textContent = formatDuration(performance.now() - app.timerStart);
+      }, 33);
+    }
+
+    function updateStopwatchLabel(label) {
+      els.timerLabel.textContent = label;
+    }
+
+    function stopStopwatch(keepElapsed = true) {
+      if (app.timerId !== null) {
+        clearInterval(app.timerId);
+        app.timerId = null;
+        if (keepElapsed) els.timerValue.textContent = formatDuration(performance.now() - app.timerStart);
+      }
+    }
+
+    function setEngine(state, label) {
+      els.stateDot.className = `state-dot${state ? ` ${state}` : ""}`;
+      els.engineLabel.textContent = label;
+    }
+
+    function setBusy(value) {
+      app.busy = value;
+      els.connect.disabled = value;
+      els.runQuery.disabled = value || !app.selected || !app.conn;
+      els.clearCache.disabled = value || !app.cacheKey;
+      els.fileSearch.disabled = value || !app.files.length;
+      if (value) setEngine("busy", "Working");
+      else if (app.conn) setEngine("ready", "DuckDB ready");
+    }
+
+    function setMessage(text, kind = "") {
+      els.message.className = `message${kind ? ` ${kind}` : ""}`;
+      els.message.textContent = text;
+    }
+
+    function showAlert(title, message, kind = "error") {
+      const safeMessage = redact(message);
+      els.alertTitle.textContent = title;
+      els.alertMessage.textContent = safeMessage;
+      els.alertDialog.dataset.kind = kind;
+      if (typeof els.alertDialog.showModal === "function") {
+        if (!els.alertDialog.open) els.alertDialog.showModal();
+      } else {
+        window.alert(`${title}\n\n${safeMessage}`);
+      }
+    }
+
+    function classifyError(error, fallbackTitle = "Operation failed") {
+      const message = redact(error?.message ?? error);
+      if (/\b(?:401|403)\b|AuthenticationFailed|AuthorizationFailure|Signature did not match|Server failed to authenticate|not authorized/i.test(message)) {
+        return {
+          title: "Azure rejected the credentials",
+          message: `${message}\n\nThe credential may be invalid, expired, not active yet, or missing container list/read permission. Paste a fresh SAS connection block and try again.`,
+        };
+      }
+      if (/\b404\b|ResourceNotFound|ContainerNotFound|BlobNotFound/i.test(message)) {
+        return {
+          title: "Azure resource not found",
+          message: `${message}\n\nCheck the account_url and container_name. Azure can also return a not-found response when a private resource is not accessible with the supplied SAS.`,
+        };
+      }
+      if (/\b(?:429|500|502|503|504)\b|Proxy CSV fetch failed/i.test(message)) {
+        return {
+          title: "The proxy could not retrieve the Azure file",
+          message: `${message}\n\nThe Netlify proxy may be unavailable, rate-limited, or unable to return this file. Try again, or test a smaller CSV.`,
+        };
+      }
+      if (/Failed to fetch|NetworkError|CORS|Unable to connect to URL|Load failed/i.test(message)) {
+        return {
+          title: "Proxy or network access blocked",
+          message: `${message}\n\nThe app routes Azure requests through your Netlify CORS proxy. Check that ${CORS_PROXY} is available and that your browser or network is not blocking Netlify.`,
+        };
+      }
+      if (/WebAssembly|DuckDB|worker|module|apache-arrow/i.test(message)) {
+        return {
+          title: "Browser query engine could not start",
+          message: `${message}\n\nReload the page and check that your browser or content blocker allows scripts and workers from cdn.jsdelivr.net.`,
+        };
+      }
+      return { title: fallbackTitle, message };
+    }
+
+    function normalizeSas(value) {
+      return value.trim().replace(/^\?/, "");
+    }
+
+    function unquoteAssignmentValue(value) {
+      const trimmed = value.trim();
+      if (trimmed.length >= 2) {
+        const first = trimmed[0];
+        const last = trimmed.at(-1);
+        if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
+          return trimmed.slice(1, -1);
+        }
+      }
+      return trimmed;
+    }
+
+    function unwrapMarkdownLink(value) {
+      const match = String(value).match(/^\[[^\]]+\]\((https?:\/\/[^)]+)\)$/i);
+      return match ? match[1] : value;
+    }
+
+    function parseCredentialBlock(text) {
+      const parsed = {};
+      for (const rawLine of String(text).split(/\r?\n/)) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith("#")) continue;
+        const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$/);
+        if (!match) throw new Error(`Invalid connection line: ${line}`);
+        const key = match[1];
+        if (!["account_url", "container_name", "credential"].includes(key)) {
+          throw new Error(`Unexpected connection key: ${key}`);
+        }
+        if (Object.hasOwn(parsed, key)) throw new Error(`Duplicate connection key: ${key}`);
+        parsed[key] = unquoteAssignmentValue(match[2]);
+      }
+
+      const missing = ["account_url", "container_name", "credential"].filter((key) => !parsed[key]);
+      if (missing.length) throw new Error(`Missing connection value(s): ${missing.join(", ")}`);
+
+      parsed.account_url = unwrapMarkdownLink(parsed.account_url).replace(/\/+$/, "");
+      if (!/^https:\/\//i.test(parsed.account_url)) {
+        throw new Error("account_url must be an HTTPS URL.");
+      }
+      parsed.credential = normalizeSas(parsed.credential);
+      return parsed;
+    }
+
+    function redact(message) {
+      let safe = String(message ?? "Unknown error");
+      if (app.sas) {
+        safe = safe.split(app.sas).join("[SAS REDACTED]");
+        safe = safe.split(encodeURIComponent(app.sas)).join("[SAS REDACTED]");
+      }
+      return safe.replace(/([?&](?:sig|se|st|sp|sv|sr)=)[^&\s"']+/gi, "$1[REDACTED]");
+    }
+
+    function sqlLiteral(value) {
+      return `'${String(value).replaceAll("'", "''")}'`;
+    }
+
+    function sqlIdentifier(value) {
+      return `"${String(value).replaceAll('"', '""')}"`;
+    }
+
+    function throughProxy(targetUrl) {
+      return `${CORS_PROXY}${encodeURIComponent(targetUrl)}`;
+    }
+
+    function azureBlobUrl(blobName) {
+      const base = app.accountUrl.replace(/\/+$/, "");
+      const path = blobName.split("/").map(encodeURIComponent).join("/");
+      return `${base}/${encodeURIComponent(app.container)}/${path}?${app.sas}`;
+    }
+
+    function blobUrl(blobName) {
+      return throughProxy(azureBlobUrl(blobName));
+    }
+
+    function listUrl(marker = "") {
+      const base = app.accountUrl.replace(/\/+$/, "");
+      const markerPart = marker ? `&marker=${encodeURIComponent(marker)}` : "";
+      const target = `${base}/${encodeURIComponent(app.container)}?restype=container&comp=list&${app.sas}${markerPart}`;
+      return throughProxy(target);
+    }
+
+    async function fetchCsvBytes(file) {
+      const response = await fetch(blobUrl(file.name), {
+        method: "GET",
+        cache: "no-store",
+        referrerPolicy: "no-referrer",
+      });
+      if (!response.ok) {
+        const detail = (await response.text()).slice(0, 500);
+        throw new Error(`Proxy CSV fetch failed (${response.status} ${response.statusText}): ${detail}`);
+      }
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      if (!bytes.byteLength) throw new Error("The proxy returned an empty CSV response.");
+      return bytes;
+    }
+
+    async function withProxyCsv(file, callback) {
+      const bytes = await fetchCsvBytes(file);
+      const virtualName = `proxy_csv_${++app.virtualFileSequence}.csv`;
+      await app.db.registerFileBuffer(virtualName, bytes);
+      try {
+        return await callback(virtualName, bytes.byteLength);
+      } finally {
+        try {
+          await app.db.dropFile(virtualName);
+        } catch (_) {
+          // The in-memory registration is also released when DuckDB is terminated.
+        }
+      }
+    }
+
+    function arrowRows(table) {
+      return table.toArray().map((row) => {
+        if (typeof row?.toJSON === "function") return row.toJSON();
+        return Object.fromEntries(Object.entries(row));
+      });
+    }
+
+    function normalizeGridValue(value) {
+      if (typeof value === "bigint") return value.toString();
+      if (value instanceof Date) return Number.isNaN(value.valueOf()) ? "" : value.toISOString();
+      if (value && typeof value === "object") {
+        if (typeof value.toJSON === "function") return value.toJSON();
+        return JSON.stringify(value);
+      }
+      return value;
+    }
+
+    function normalizeGridRows(rows) {
+      return rows.map((row) => Object.fromEntries(
+        Object.entries(row).map(([key, value]) => [key, normalizeGridValue(value)])
+      ));
+    }
+
+    function humanBytes(value) {
+      const bytes = Number(value || 0);
+      if (!Number.isFinite(bytes) || bytes <= 0) return "—";
+      const units = ["B", "KB", "MB", "GB"];
+      const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+      return `${(bytes / (1024 ** index)).toFixed(index ? 1 : 0)} ${units[index]}`;
+    }
+
+    async function ensureDuckDb() {
+      if (app.conn) return;
+      updateStopwatchLabel("Starting DuckDB");
+      const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
+      const workerUrl = URL.createObjectURL(new Blob([
+        `importScripts(${JSON.stringify(bundle.mainWorker)});`
+      ], { type: "text/javascript" }));
+      const worker = new Worker(workerUrl);
+      app.db = new duckdb.AsyncDuckDB(new duckdb.ConsoleLogger(), worker);
+      await app.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+      URL.revokeObjectURL(workerUrl);
+      await app.db.open({
+        query: {
+          castBigIntToDouble: true,
+          castDecimalToDouble: true,
+          castTimestampToDate: true,
+        },
+      });
+      app.conn = await app.db.connect();
+    }
+
+    async function listCsvFiles() {
+      const files = [];
+      let marker = "";
+      let pages = 0;
+      do {
+        const response = await fetch(listUrl(marker), {
+          method: "GET",
+          cache: "no-store",
+          referrerPolicy: "no-referrer",
+        });
+        const text = await response.text();
+        if (!response.ok) throw new Error(`Azure listing failed (${response.status}): ${text.slice(0, 500)}`);
+        const xml = new DOMParser().parseFromString(text, "application/xml");
+        const parserError = xml.querySelector("parsererror");
+        if (parserError) throw new Error("Azure returned an invalid container listing.");
+        for (const node of xml.querySelectorAll("Blobs > Blob")) {
+          const name = node.querySelector("Name")?.textContent ?? "";
+          if (!name.toLowerCase().endsWith(".csv")) continue;
+          files.push({
+            name,
+            size: Number(node.querySelector("Properties > Content-Length")?.textContent ?? 0),
+            modified: node.querySelector("Properties > Last-Modified")?.textContent ?? "",
+          });
+        }
+        marker = xml.querySelector("NextMarker")?.textContent?.trim() ?? "";
+        pages += 1;
+        if (pages > 100) throw new Error("Stopped after 100 Azure listing pages.");
+      } while (marker);
+      return files.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    async function inspectSchema(file) {
+      return withProxyCsv(file, async (virtualName) => {
+        const result = await app.conn.query(`
+          DESCRIBE SELECT *
+          FROM read_csv_auto(
+            ${sqlLiteral(virtualName)},
+            header = true,
+            ignore_errors = true,
+            sample_size = 20000
+          )
+        `);
+        return arrowRows(result).map((row) => ({
+          name: String(row.column_name ?? row["column_name"] ?? ""),
+          type: String(row.column_type ?? row["column_type"] ?? "UNKNOWN"),
+        }));
+      });
+    }
+
+    async function connectAndInspect() {
+      let connection;
+      try {
+        connection = parseCredentialBlock(els.credentialBlock.value);
+      } catch (error) {
+        const message = redact(error.message);
+        setMessage(message, "error");
+        showAlert("Invalid connection block", `${message}\n\nUse exactly three lines named account_url, container_name, and credential.`);
+        return;
+      }
+
+      app.accountUrl = connection.account_url;
+      app.container = connection.container_name;
+      app.sas = connection.credential;
+      app.files = [];
+      app.schemas.clear();
+      app.expanded.clear();
+      app.selected = null;
+      app.cacheKey = null;
+      app.cachedRows = 0;
+      app.cachedRange = null;
+      clearGrid();
+      renderFiles();
+      setBusy(true);
+      startStopwatch("Listing CSV files");
+      setMessage("Listing CSV files through the Netlify proxy. Schema inspection will download each CSV into temporary browser memory.");
+
+      try {
+        app.files = await listCsvFiles();
+        els.fileCount.textContent = String(app.files.length);
+        els.scanLabel.textContent = app.files.length ? `0 / ${app.files.length} schemas` : "No CSV files found";
+        renderFiles();
+        if (!app.files.length) throw new Error("The container listing did not return any CSV files.");
+
+        await ensureDuckDb();
+        updateStopwatchLabel("Inspecting schemas");
+
+        let completed = 0;
+        for (const file of app.files) {
+          try {
+            const schema = await inspectSchema(file);
+            app.schemas.set(file.name, { status: "ready", columns: schema });
+          } catch (error) {
+            app.schemas.set(file.name, { status: "error", error: redact(error.message) });
+          }
+          completed += 1;
+          els.scanLabel.textContent = `${completed} / ${app.files.length} schemas`;
+          els.progressBar.style.width = `${(completed / app.files.length) * 100}%`;
+          renderFiles();
+          await new Promise(requestAnimationFrame);
+        }
+
+        els.disconnect.disabled = false;
+        els.fileSearch.disabled = false;
+        const failed = [...app.schemas.values()].filter((entry) => entry.status === "error").length;
+        setMessage(
+          failed
+            ? `Inspected ${app.files.length - failed} of ${app.files.length} schemas. ${failed} failed; expand those files for details.`
+            : `Inspected all ${app.files.length} CSV schemas. Select a file to build a query.`,
+          failed ? "" : "success",
+        );
+        setEngine("ready", "DuckDB ready");
+        if (failed === app.files.length) {
+          showAlert(
+            "CSV reads were blocked",
+            "The container listing succeeded through the proxy, but every CSV download or schema inspection failed. The proxy may be rejecting the Azure responses, the files may be too large for browser memory, or Azure may have rejected the forwarded SAS URLs. Expand a file to see its exact error.",
+          );
+        }
+      } catch (error) {
+        setEngine("error", "Connection failed");
+        const issue = classifyError(error, "Connection failed");
+        setMessage(issue.message, "error");
+        showAlert(issue.title, issue.message);
+        els.scanLabel.textContent = "Inspection stopped";
+      } finally {
+        stopStopwatch();
+        setBusy(false);
+      }
+    }
+
+    function disconnect() {
+      app.sas = "";
+      els.credentialBlock.value = "";
+      app.files = [];
+      app.schemas.clear();
+      app.expanded.clear();
+      app.selected = null;
+      app.cacheKey = null;
+      app.cachedRows = 0;
+      app.cachedRange = null;
+      els.fileCount.textContent = "0";
+      els.scanLabel.textContent = "Connect to list files";
+      els.progressBar.style.width = "0";
+      els.selectedFile.textContent = "None";
+      els.disconnect.disabled = true;
+      els.fileSearch.value = "";
+      els.fileSearch.disabled = true;
+      els.clearCache.disabled = true;
+      els.runQuery.disabled = true;
+      renderFiles();
+      clearGrid();
+      setEngine("", "Not connected");
+      setMessage("Credentials cleared from this tab. Connect again to inspect files.");
+    }
+
+    function schemaMatches(entry, term) {
+      if (!term) return true;
+      if (entry.file.name.toLowerCase().includes(term)) return true;
+      return entry.schema?.columns?.some((column) =>
+        column.name.toLowerCase().includes(term) || column.type.toLowerCase().includes(term)
+      );
+    }
+
+    function renderFiles() {
+      if (!app.files.length) {
+        els.fileList.innerHTML = '<div class="empty-files">Paste the connection block to list every CSV and inspect its columns and data types.</div>';
+        return;
+      }
+
+      const term = els.fileSearch.value.trim().toLowerCase();
+      const entries = app.files
+        .map((file) => ({ file, schema: app.schemas.get(file.name) }))
+        .filter((entry) => schemaMatches(entry, term));
+
+      els.fileList.innerHTML = entries.map(({ file, schema }) => {
+        const selected = app.selected?.name === file.name;
+        const expanded = app.expanded.has(file.name);
+        let schemaHtml = '<div class="schema-note">Inspecting columns…</div>';
+        if (schema?.status === "ready") {
+          schemaHtml = schema.columns.length
+            ? schema.columns.map((column) => `
+                <div class="schema-row">
+                  <span class="column-name">${escapeHtml(column.name)}</span>
+                  <span class="column-type">${escapeHtml(column.type)}</span>
+                </div>`).join("")
+            : '<div class="schema-note">No columns detected.</div>';
+        } else if (schema?.status === "error") {
+          schemaHtml = `<div class="schema-note error">${escapeHtml(schema.error)}</div>`;
+        }
+        const count = schema?.status === "ready" ? `${schema.columns.length} cols` : humanBytes(file.size);
+        return `
+          <article class="file-card${selected ? " selected" : ""}${expanded ? " expanded" : ""}${schema?.status === "error" ? " schema-error" : ""}" data-file="${escapeAttr(file.name)}">
+            <button class="file-head" type="button" title="${escapeAttr(file.name)}">
+              <span class="chevron" aria-hidden="true">▼</span>
+              <span class="file-name">${escapeHtml(file.name)}</span>
+              <span class="file-meta">${escapeHtml(count)}</span>
+            </button>
+            <div class="schema">${schemaHtml}</div>
+          </article>`;
+      }).join("") || '<div class="empty-files">No filenames or columns match this filter.</div>';
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      })[character]);
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#096;");
+    }
+
+    function selectFile(name) {
+      const file = app.files.find((item) => item.name === name);
+      if (!file) return;
+      app.selected = file;
+      if (app.expanded.has(name)) app.expanded.delete(name);
+      else app.expanded.add(name);
+      els.selectedFile.textContent = name;
+      app.cacheKey = null;
+      app.cachedRows = 0;
+      app.cachedRange = null;
+      updateStats(0);
+      const schema = app.schemas.get(name);
+      els.runQuery.disabled = app.busy || !app.conn || schema?.status !== "ready";
+      els.clearCache.disabled = true;
+      setMessage(
+        schema?.status === "ready"
+          ? `Selected ${name}. Complete the filters and run the query.`
+          : `The schema for ${name} is not available.`,
+        schema?.status === "ready" ? "success" : "error",
+      );
+      renderFiles();
+    }
+
+    function findColumn(schema, target) {
+      return schema?.columns?.find((column) => column.name.toLowerCase() === target.toLowerCase())?.name ?? null;
+    }
+
+    function dateExpression(columnName) {
+      if (!columnName) return null;
+      const column = sqlIdentifier(columnName);
+      return `TRY_CAST(NULLIF(TRIM(CAST(${column} AS VARCHAR)), '') AS TIMESTAMP)`;
+    }
+
+    function effectiveDateExpressions(schema) {
+      const recordModified = dateExpression(findColumn(schema, "record_modified"));
+      const logDate = dateExpression(findColumn(schema, "log_date"));
+      if (recordModified && logDate) {
+        return {
+          start: `CASE WHEN ${recordModified} IS NULL THEN ${logDate} WHEN ${logDate} IS NULL THEN ${recordModified} ELSE LEAST(${recordModified}, ${logDate}) END`,
+          end: `CASE WHEN ${recordModified} IS NULL THEN ${logDate} WHEN ${logDate} IS NULL THEN ${recordModified} ELSE GREATEST(${recordModified}, ${logDate}) END`,
+        };
+      }
+      if (recordModified) return { start: recordModified, end: recordModified };
+      if (logDate) return { start: logDate, end: logDate };
+      return { start: null, end: null };
+    }
+
+    async function runQuery() {
+      const file = app.selected;
+      const schema = file ? app.schemas.get(file.name) : null;
+      if (!file || schema?.status !== "ready") {
+        const error = "Select a CSV with a successfully inspected schema.";
+        setMessage(error, "error");
+        showAlert("Select a CSV", error, "warning");
+        return { ok: false, error };
+      }
+
+      const ownerColumn = findColumn(schema, "owner_org");
+      const logColumn = findColumn(schema, "log_activity");
+      const owner = els.ownerOrg.value.trim();
+      const selectedLogs = [...document.querySelectorAll(".log-option:checked")].map((input) => input.value);
+      const start = els.startDate.value;
+      const end = els.endDate.value;
+      const limit = Number(els.rowLimit.value);
+      const dates = effectiveDateExpressions(schema);
+      const errors = [];
+
+      if (ownerColumn && !owner) errors.push("Enter an owner_org.");
+      if (logColumn && !selectedLogs.length) errors.push("Select at least one log_activity value.");
+      if (dates.start && (!start || !end)) errors.push("Select both start and end dates.");
+      if (start && end && start > end) errors.push("Start date must be on or before end date.");
+      if (errors.length) {
+        const error = errors.join(" ");
+        setMessage(error, "error");
+        showAlert("Check the query options", error, "warning");
+        return { ok: false, error };
+      }
+
+      setBusy(true);
+      const requestedKey = JSON.stringify([file.name, owner]);
+      const needsRemoteLoad = app.cacheKey !== requestedKey;
+      startStopwatch(needsRemoteLoad ? "Loading owner rows" : "Filtering local cache");
+
+      try {
+        if (needsRemoteLoad) {
+          setMessage(`Downloading ${file.name} through the proxy, then loading ${ownerColumn ? `owner_org=${JSON.stringify(owner)} ` : "rows "}into local DuckDB. The proxy may transfer the complete CSV.`);
+          const ownerWhere = ownerColumn
+            ? `WHERE TRIM(CAST(${sqlIdentifier(ownerColumn)} AS VARCHAR)) = ${sqlLiteral(owner)}`
+            : "";
+          await app.conn.query("DROP TABLE IF EXISTS owner_rows");
+          await withProxyCsv(file, async (virtualName) => {
+            await app.conn.query(`
+              CREATE TEMP TABLE owner_rows AS
+              SELECT *
+              FROM read_csv_auto(
+                ${sqlLiteral(virtualName)},
+                header = true,
+                ignore_errors = true,
+                sample_size = 20000
+              )
+              ${ownerWhere}
+            `);
+          });
+          app.cachedRows = Number(arrowRows(await app.conn.query("SELECT COUNT(*) AS row_count FROM owner_rows"))[0]?.row_count ?? 0);
+          app.cacheKey = requestedKey;
+          app.cachedRange = null;
+          if (dates.start && dates.end) {
+            const rangeRows = arrowRows(await app.conn.query(`
+              SELECT MIN(${dates.start}) AS min_date, MAX(${dates.end}) AS max_date
+              FROM owner_rows
+            `));
+            const row = rangeRows[0] ?? {};
+            app.cachedRange = {
+              min: normalizeGridValue(row.min_date),
+              max: normalizeGridValue(row.max_date),
+            };
+          }
+        }
+
+        updateStopwatchLabel("Filtering local cache");
+        const where = [];
+        if (logColumn && selectedLogs.length) {
+          where.push(`UPPER(TRIM(CAST(${sqlIdentifier(logColumn)} AS VARCHAR))) IN (${selectedLogs.map(sqlLiteral).join(", ")})`);
+        }
+        if (dates.start && dates.end && start && end) {
+          where.push(`(${dates.end}) >= TIMESTAMP ${sqlLiteral(`${start} 00:00:00`)}`);
+          where.push(`(${dates.start}) < TIMESTAMP ${sqlLiteral(`${end} 23:59:59.999`)}`);
+        }
+        const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+        const orderSql = dates.start && dates.end ? `ORDER BY (${dates.start}), (${dates.end})` : "";
+        const result = await app.conn.query(`
+          SELECT * FROM owner_rows
+          ${whereSql}
+          ${orderSql}
+          LIMIT ${limit}
+        `);
+        const rows = normalizeGridRows(arrowRows(result));
+        showGrid(rows, schema.columns);
+        updateStats(rows.length);
+        els.clearCache.disabled = false;
+        const cacheCopy = needsRemoteLoad
+          ? `Loaded ${app.cachedRows.toLocaleString()} source row(s) into browser DuckDB.`
+          : `Reused ${app.cachedRows.toLocaleString()} cached source row(s); no new blob CSV query.`;
+        setMessage(`${cacheCopy} Showing ${rows.length.toLocaleString()} matching row(s).`, "success");
+        return {
+          ok: true,
+          fileName: file.name,
+          shownRows: rows.length,
+          cachedRows: app.cachedRows,
+          reusedCache: !needsRemoteLoad,
+          effectiveDateRange: app.cachedRange,
+        };
+      } catch (error) {
+        const issue = classifyError(error, "Query failed");
+        const safeError = issue.message;
+        setMessage(safeError, "error");
+        showAlert(issue.title, issue.message);
+        setEngine("error", "Query failed");
+        return { ok: false, error: safeError };
+      } finally {
+        stopStopwatch();
+        setBusy(false);
+      }
+    }
+
+    function showGrid(rows, schemaColumns) {
+      const fields = rows.length ? Object.keys(rows[0]) : schemaColumns.map((column) => column.name);
+      const columns = fields.map((field) => ({
+        title: field,
+        field,
+        headerFilter: "input",
+        headerFilterPlaceholder: "Filter",
+        minWidth: 140,
+        widthGrow: 1,
+        tooltip: true,
+      }));
+
+      if (app.table) app.table.destroy();
+      app.table = new Tabulator("#data-grid", {
+        data: rows,
+        columns,
+        height: "100%",
+        layout: "fitDataStretch",
+        placeholder: "No matching rows",
+        pagination: true,
+        paginationMode: "local",
+        paginationSize: 100,
+        paginationSizeSelector: [25, 50, 100, 250],
+        movableColumns: true,
+        clipboard: true,
+        rowHeader: { formatter: "rownum", headerSort: false, hozAlign: "center", resizable: false, frozen: true, width: 56 },
+      });
+      els.gridEmpty.style.display = "none";
+      els.exportCsv.disabled = !rows.length;
+    }
+
+    function clearGrid() {
+      if (app.table) {
+        app.table.destroy();
+        app.table = null;
+      }
+      els.gridEmpty.style.display = "grid";
+      els.exportCsv.disabled = true;
+      updateStats(0);
+    }
+
+    function updateStats(shown) {
+      els.shownStat.textContent = `${Number(shown).toLocaleString()} shown`;
+      els.cachedStat.textContent = `${Number(app.cachedRows).toLocaleString()} cached`;
+      if (app.cachedRange?.min && app.cachedRange?.max) {
+        const min = String(app.cachedRange.min).slice(0, 10);
+        const max = String(app.cachedRange.max).slice(0, 10);
+        els.rangeStat.textContent = `${min} → ${max}`;
+      } else {
+        els.rangeStat.textContent = "Date range —";
+      }
+    }
+
+    async function clearCache() {
+      if (app.conn) {
+        try { await app.conn.query("DROP TABLE IF EXISTS owner_rows"); } catch (_) { /* no-op */ }
+      }
+      app.cacheKey = null;
+      app.cachedRows = 0;
+      app.cachedRange = null;
+      els.clearCache.disabled = true;
+      updateStats(app.table?.getDataCount?.() ?? 0);
+      setMessage("Local DuckDB cache cleared. The next query will load the selected CSV again.");
+    }
+
+    function registerWebMcpTools() {
+      const context = document.modelContext;
+      if (!context?.registerTool) return;
+      const lifecycle = new AbortController();
+
+      const registrations = [
+        context.registerTool({
+          name: "list_csv_sources",
+          title: "List CSV sources",
+          description: "List CSV files and their inspected column names and data types from the current Azure connection.",
+          inputSchema: { type: "object", properties: {}, additionalProperties: false },
+          annotations: { readOnlyHint: true, untrustedContentHint: true },
+          execute() {
+            return {
+              connected: Boolean(app.sas && app.conn),
+              files: app.files.map((file) => {
+                const schema = app.schemas.get(file.name);
+                return {
+                  name: file.name,
+                  sizeBytes: file.size,
+                  columns: schema?.status === "ready" ? schema.columns : [],
+                  schemaStatus: schema?.status ?? "pending",
+                };
+              }),
+            };
+          },
+        }, { signal: lifecycle.signal }),
+        context.registerTool({
+          name: "run_pd_query",
+          title: "Run PD Warehouse query",
+          description: "Select a visible CSV and run the same owner, activity, and date query as the page controls. Requires an active Azure connection entered by the user.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              fileName: { type: "string", description: "Exact CSV filename from list_csv_sources." },
+              ownerOrg: { type: "string" },
+              logActivities: { type: "array", items: { type: "string", enum: ["A", "C", "D"] }, minItems: 1, uniqueItems: true },
+              startDate: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
+              endDate: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
+              limit: { type: "integer", enum: [250, 500, 1000, 2500, 5000] },
+            },
+            required: ["fileName", "ownerOrg", "logActivities", "startDate", "endDate"],
+            additionalProperties: false,
+          },
+          annotations: { readOnlyHint: true, untrustedContentHint: true },
+          async execute(input) {
+            if (!app.sas || !app.conn) throw new Error("Enter the Azure connection in the visible page first.");
+            const file = app.files.find((item) => item.name === input.fileName);
+            if (!file) throw new Error("The requested CSV is not in the current Azure listing.");
+            selectFile(file.name);
+            els.ownerOrg.value = String(input.ownerOrg ?? "");
+            els.startDate.value = input.startDate;
+            els.endDate.value = input.endDate;
+            els.rowLimit.value = String(input.limit ?? 500);
+            const requestedLogs = new Set(input.logActivities ?? []);
+            document.querySelectorAll(".log-option").forEach((checkbox) => {
+              checkbox.checked = requestedLogs.has(checkbox.value);
+            });
+            const result = await runQuery();
+            if (!result?.ok) throw new Error(result?.error ?? "Query failed.");
+            return result;
+          },
+        }, { signal: lifecycle.signal }),
+      ];
+
+      for (const registration of registrations) {
+        void Promise.resolve(registration).catch(() => {});
+      }
+      window.addEventListener("beforeunload", () => lifecycle.abort(), { once: true });
+    }
+
+    els.toggleSecret.addEventListener("click", () => {
+      const masked = els.credentialBlock.classList.toggle("masked");
+      els.toggleSecret.textContent = masked ? "Show" : "Mask";
+      els.toggleSecret.setAttribute("aria-label", `${masked ? "Show" : "Mask"} connection block`);
+    });
+
+    els.connect.addEventListener("click", connectAndInspect);
+    els.disconnect.addEventListener("click", disconnect);
+    els.fileSearch.addEventListener("input", renderFiles);
+    els.fileList.addEventListener("click", (event) => {
+      const card = event.target.closest(".file-card");
+      if (card) selectFile(card.dataset.file);
+    });
+    els.runQuery.addEventListener("click", runQuery);
+    els.clearCache.addEventListener("click", clearCache);
+    els.exportCsv.addEventListener("click", () => {
+      if (app.table) app.table.download("csv", "pd-warehouse-results.csv");
+    });
+    els.alertClose.addEventListener("click", () => els.alertDialog.close());
+
+    window.addEventListener("beforeunload", () => {
+      app.sas = "";
+      els.credentialBlock.value = "";
+    });
+
+    if (typeof window.Tabulator !== "function") {
+      showAlert(
+        "Data grid could not start",
+        "The Tabulator library did not load. Check that your browser or content blocker allows cdn.jsdelivr.net, then reload the page.",
+      );
+    }
+
+    registerWebMcpTools();
+    window.__pdAppBooted = true;
+  </script>
+</body>
+</html>
